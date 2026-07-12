@@ -17,12 +17,12 @@ export default async function HowItWorksPage() {
       <FounderTabs active="/founder/how-it-works" />
 
       <section className="rounded-xl border border-emerald/30 bg-emerald/5 p-6 flex flex-col gap-2">
-        <p className="text-navy font-bold">This isn't a test of how smart you are</p>
+        <p className="text-navy font-bold">This isn&apos;t a test of how smart you are</p>
         <p className="text-navy/70 text-sm">
           Founda21 exists to help you get honestly ready for investment — not to catch you out or make you
           feel small. Some checkpoints are genuinely hard, and a strong founder can fail one on the first
-          try — that's normal, and it's the system working, not you failing. When something isn't ready, we
-          try to tell you clearly and specifically what's missing, so you know exactly what to fix.
+          try — that&apos;s normal, and it&apos;s the system working, not you failing. When something isn&apos;t ready, we
+          try to tell you clearly and specifically what&apos;s missing, so you know exactly what to fix.
         </p>
       </section>
 
@@ -34,7 +34,7 @@ export default async function HowItWorksPage() {
           <span className="font-semibold text-navy">Investor & Deal Readiness</span> (CP15–21). Stages unlock in
           order, and each also needs your venture to genuinely be at the right stage of life — Stage 2 needs
           real traction, Stage 3 needs a raise underway, because the checkpoints ask for evidence you simply
-          can't have any earlier.
+          can&apos;t have any earlier.
         </p>
       </section>
 
@@ -59,26 +59,26 @@ export default async function HowItWorksPage() {
           </li>
           <li className="text-navy/70 text-sm">
             <span className="font-semibold text-navy">Rigour & Coherence</span> — does it hold together and
-            follow from your own venture's facts?
+            follow from your own venture&apos;s facts?
           </li>
           <li className="text-navy/70 text-sm">
             <span className="font-semibold text-navy">Investor Credibility</span> — would this survive a
-            skeptical investor's direct follow-up question, and is it honest about its own weak spots?
+            skeptical investor&apos;s direct follow-up question, and is it honest about its own weak spots?
           </li>
         </ul>
         <p className="text-navy/70 text-sm">
           Each checkpoint has a pass mark (60 for Stage 1 and 2, 70 for Stage 3 — the closer you get to
           investment, the higher the bar). When a result lands close to that line, we quietly run it past the
-          AI a second time and average the two reads — so a single unlucky pass isn't what decides your
+          AI a second time and average the two reads — so a single unlucky pass isn&apos;t what decides your
           outcome.
         </p>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-navy font-bold">If a checkpoint doesn't pass</h2>
+        <h2 className="text-navy font-bold">If a checkpoint doesn&apos;t pass</h2>
         <p className="text-navy/70 text-sm">
-          You'll see specifically what was missing and what to fix, and you can resubmit. If a full stage
-          doesn't clear on an attempt, there's a 14-day cooldown before you can retry that stage — not as a
+          You&apos;ll see specifically what was missing and what to fix, and you can resubmit. If a full stage
+          doesn&apos;t clear on an attempt, there&apos;s a 14-day cooldown before you can retry that stage — not as a
           punishment, but because real fixes (new evidence, a rebuilt model, an actual customer conversation)
           take real time, and rushing back in with the same gaps rarely helps.
         </p>
@@ -87,8 +87,8 @@ export default async function HowItWorksPage() {
       <section className="flex flex-col gap-3">
         <h2 className="text-navy font-bold">Being honest with you</h2>
         <p className="text-navy/70 text-sm">
-          We'd rather tell you now, clearly, that something isn't ready — while you still have time to fix
-          it — than let you walk into a real investor meeting and find out the hard way. That's the whole
+          We&apos;d rather tell you now, clearly, that something isn&apos;t ready — while you still have time to fix
+          it — than let you walk into a real investor meeting and find out the hard way. That&apos;s the whole
           point of Founda21.
         </p>
       </section>
