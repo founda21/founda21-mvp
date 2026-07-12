@@ -1,0 +1,358 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum VentureType {
+  B2C
+  B2B
+  HARDWARE
+}
+
+enum StageStatusValue {
+  in_progress
+  passed
+}
+
+// The funder's real client segment, captured at signup ("funder" onboarding
+// path). Replaces the old 4-value InstitutionType — every funder has one,
+// no "unset" state (backfilled for pre-existing rows in the migration).
+enum FunderType {
+  corporate_esd
+  esd_fund_manager
+  dfi_government
+  university
+  accelerator_incubator
+  impact_investor_vc
+}
+
+enum CohortMembershipStatus {
+  active
+  completed
+  withdrawn
+}
+
+// Eligibility/outcome enums (§ FounderEligibility, FounderOutcome) — routing
+// and reporting attributes only. Never read by the scoring engine.
+enum AnnualTurnoverBand {
+  pre_revenue
+  under_10m
+  ten_m_to_50m
+  over_50m
+}
+
+enum EntityType {
+  not_yet_registered
+  pty_ltd
+  other
+}
+
+enum CapitalType {
+  equity
+  debt
+  grant
+  esd_grant
+  none
+}
+
+enum BeneficiaryClass {
+  EME
+  QSE
+  generic
+  n_a
+}
+
+// Self-reported real-world funding stage. Metadata only — does not affect
+// checkpoint gating; every founder still completes all 21 checkpoints in
+// order regardless of this value.
+enum VentureStage {
+  IDEA
+  PRE_SEED
+  SEED
+  SERIES_A_PLUS
+}
+
+// Identity anchor (§ system integrity — one human = one founder account).
+enum IdType {
+  sa_id
+  passport
+}
+
+enum AttemptResult {
+  pass
+  fail
+}
+
+// Institution admin account — this is the "Funder" of the spec (kept as
+// `Institution` internally since renaming the model is a large mechanical
+// diff for zero behavioral gain; only user-facing copy says "Funder").
+// admin_user_id points at the Supabase auth user that owns this institution
+// (auth.users lives in Supabase, not Prisma).
+model Institution {
+  id           String     @id @default(cuid())
+  name         String
+  funderType   FunderType @map("funder_type")
+  contactName  String?    @map("contact_name")
+  contactEmail String?    @map("contact_email")
+  adminUserId  String     @unique @map("admin_user_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  cohorts Cohort[]
+
+  @@map("institutions")
+}
+
+// A Cohort *is* the spec's "InviteCode" — its inviteCode field already is the
+// passcode; the fields below are the passcode's configuration (entry-stage
+// hint, usage limits, expiry). No separate InviteCode entity.
+model Cohort {
+  id                 String    @id @default(cuid())
+  institutionId      String    @map("institution_id")
+  name               String
+  inviteCode         String    @unique @map("invite_code")
+  intendedEntryStage Int       @default(1) @map("intended_entry_stage")
+  maxUses            Int?      @map("max_uses")
+  usesCount          Int       @default(0) @map("uses_count")
+  active             Boolean   @default(true)
+  expiresAt          DateTime? @map("expires_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  founders    Founder[]
+  memberships CohortMembership[]
+
+  @@map("cohorts")
+}
+
+// A founder account is portable across institutions — the same login can
+// join any number of cohorts (e.g. an accelerator's cohort, then later a
+// university's), keeping the same checkpoint progress everywhere rather than
+// starting over. Founder.cohortId (below) is just the founder's original/
+// home cohort; a founder's actual cohort memberships — and therefore which
+// institutions can see them — come from this join table. This is the spec's
+// "Enrollment" — progress lives on Founder, not here, so there is no
+// per-membership stage field; Cohort.intendedEntryStage (funder's
+// expectation) plus Founder.currentStage (ground truth) already cover it.
+model CohortMembership {
+  id           String                 @id @default(cuid())
+  founderId    String                 @map("founder_id")
+  cohortId     String                 @map("cohort_id")
+  status       CohortMembershipStatus @default(active)
+  // Funder-side shortlist for pitch/investment decisions (§ shortlist tabs on
+  // the cohort roster) — per-institution-relationship state, same as `status`.
+  shortlisted  Boolean                @default(false)
+  joinedAt     DateTime               @default(now()) @map("joined_at")
+
+  founder Founder @relation(fields: [founderId], references: [id], onDelete: Cascade)
+  cohort  Cohort  @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  @@unique([founderId, cohortId])
+  @@map("cohort_memberships")
+}
+
+// Internal account id for a founder. FoundaID (public identifier) slots in
+// here later — out of scope for this build.
+model Founder {
+  id           String        @id @default(cuid())
+  userId       String        @unique @map("user_id")
+  cohortId     String        @map("cohort_id")
+  fullName     String        @map("full_name")
+  ventureName  String        @map("venture_name")
+  ventureType  VentureType   @map("venture_type")
+  ventureStage VentureStage? @map("venture_stage")
+  currentStage Int           @default(1) @map("current_stage")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  // Founder-authored, funder-facing intro text (§ /complete-profile) — plain
+  // background, not scored, not seen by the AI. Nullable because Founder rows
+  // exist before this step runs; FounderLayout gates on these being filled in
+  // the same way it gates on FounderEligibility.
+  bio             String? @map("bio")
+  startupSummary  String? @map("startup_summary")
+
+  // Identity anchor (§ system integrity fix 1) — one human = one founder
+  // account, enforced at the DB level via unique indexes. Email uniqueness is
+  // already guaranteed by Supabase auth.users itself (Founder.userId is
+  // 1:1 with it), so no separate email column/index is needed here.
+  // idNumberHash is SHA-256(idNumber + app-level pepper) — the raw ID number
+  // is validated in-memory at signup and never persisted, logged, or
+  // returned in any payload; only the hash (used purely for uniqueness) is
+  // stored. Nullable at the DB level only because pre-existing founders
+  // (created before this fix) have no identity data to backfill — Postgres
+  // allows multiple NULLs under a unique index — but the signup action
+  // requires all three for every new founder from here on.
+  phoneNumber  String? @unique @map("phone_number")
+  idType       IdType? @map("id_type")
+  idNumberHash String? @unique @map("id_number_hash")
+
+  // AI-generated funder-facing investment analysis (§ founder-analysis.ts) —
+  // a SEPARATE Gemini call from the 21-checkpoint scoring engine, synthesizing
+  // already-scored checkpoint results into a recommendation/strengths/
+  // weaknesses read. Regenerated after every checkpoint submission; never fed
+  // back into scoring.
+  analysis             Json?     @map("analysis")
+  analysisModelVersion String?   @map("analysis_model_version")
+  analysisGeneratedAt  DateTime? @map("analysis_generated_at")
+
+  cohort        Cohort             @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  submissions   Submission[]
+  stageStatuses StageStatus[]
+  memberships   CohortMembership[]
+
+  // Eligibility/outcome — see § non-negotiable rule 1: never read by the
+  // scoring engine, kept in dedicated tables for that reason.
+  eligibility FounderEligibility?
+  outcomes    FounderOutcome[]
+
+  assessmentAttempts AssessmentAttempt[]
+
+  @@map("founders")
+}
+
+// One row per fully-evaluated stage attempt (§ system integrity fix 2 —
+// retake policy). Recorded once every checkpoint in a stage has been scored
+// and the stage as a whole is evaluated pass/fail — never deleted or
+// overwritten, including after a later pass, so the attempt history is
+// permanent. perCheckpointOutcome is deliberately qualitative (pass/fail +
+// gap category) — no numeric checkpoint/dimension scores are stored here,
+// matching the restricted founder-facing fail-feedback payload. Never read
+// by or fed into the scoring engine.
+model AssessmentAttempt {
+  id                   String        @id @default(cuid())
+  founderId            String        @map("founder_id")
+  stage                Int
+  attemptNumber        Int           @map("attempt_number")
+  result               AttemptResult
+  perCheckpointOutcome Json          @map("per_checkpoint_outcome")
+  // Anti-gaming flags (§ system integrity fix 3) — flag-only, never shown to
+  // founders, never block or rescore anything.
+  consistencyFlags     Json?         @map("consistency_flags")
+  similarityFlags      Json?         @map("similarity_flags")
+  frameworkVersion     String        @map("framework_version")
+  modelVersion         String        @map("model_version")
+  scoredAt             DateTime      @default(now()) @map("scored_at")
+
+  founder Founder @relation(fields: [founderId], references: [id], onDelete: Cascade)
+
+  @@unique([founderId, stage, attemptNumber])
+  @@index([founderId, stage])
+  @@map("assessment_attempts")
+}
+
+// One row per artifact submission for a checkpoint. checkpointId (1-21)
+// references the static checkpoint config, not a DB table — the 21
+// checkpoints are locked per the Founda21 framework and don't need to be
+// editable at runtime.
+model Submission {
+  id              String   @id @default(cuid())
+  founderId       String   @map("founder_id")
+  checkpointId    Int      @map("checkpoint_id")
+  artifactType    String   @map("artifact_type")
+  artifactContent String   @map("artifact_content")
+  attemptNumber   Int      @map("attempt_number")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  founder Founder @relation(fields: [founderId], references: [id], onDelete: Cascade)
+  score   Score?
+
+  @@index([founderId, checkpointId])
+  @@map("submissions")
+}
+
+model Score {
+  id               String   @id @default(cuid())
+  submissionId     String   @unique @map("submission_id")
+  checkpointScore  Int      @map("checkpoint_score")
+  passed           Boolean
+  dimensionsJson   Json     @map("dimensions_json")
+  summary          String
+  topPriorityFix   String   @map("top_priority_fix")
+  modelVersion     String   @map("model_version")
+  frameworkVersion String   @map("framework_version")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@map("scores")
+}
+
+model StageStatus {
+  id           String           @id @default(cuid())
+  founderId    String           @map("founder_id")
+  stage        Int
+  status       StageStatusValue @default(in_progress)
+  stageAverage Float?           @map("stage_average")
+  passedAt     DateTime?        @map("passed_at")
+
+  founder Founder @relation(fields: [founderId], references: [id], onDelete: Cascade)
+
+  @@unique([founderId, stage])
+  @@map("stage_statuses")
+}
+
+// Routing/reporting attributes ONLY — ownership %, turnover, entity type.
+// NEVER read by the scoring engine (§ non-negotiable rule 1). Captured once
+// at founder intake; the three derived fields are computed in application
+// code (see src/lib/founder-eligibility.ts) so there's one source of truth
+// rather than duplicating the logic in SQL and TS.
+model FounderEligibility {
+  id                     String             @id @default(cuid())
+  founderId              String             @unique @map("founder_id")
+  blackOwnershipPct      Int                @map("black_ownership_pct")
+  blackWomenOwnershipPct Int                @map("black_women_ownership_pct")
+  annualTurnoverBand     AnnualTurnoverBand @map("annual_turnover_band")
+  cipcNumber             String?            @map("cipc_number")
+  entityType             EntityType         @map("entity_type")
+  esdBeneficiaryEligible Boolean            @map("esd_beneficiary_eligible")
+  beneficiaryClass       BeneficiaryClass   @map("beneficiary_class")
+  blackWomenOwned        Boolean            @map("black_women_owned")
+  createdAt              DateTime           @default(now()) @map("created_at")
+  updatedAt              DateTime           @updatedAt @map("updated_at")
+
+  founder Founder @relation(fields: [founderId], references: [id], onDelete: Cascade)
+
+  @@map("founder_eligibility")
+}
+
+// Outcome tracking — the moat seed. One row per snapshot in time (intake,
+// then re-polled at T+6/T+12 months), not 1:1 with Founder. Never read by
+// the scoring engine.
+model FounderOutcome {
+  id                  String        @id @default(cuid())
+  founderId           String        @map("founder_id")
+  capitalRaisedZar    Int           @default(0) @map("capital_raised_zar")
+  capitalType         CapitalType[] @map("capital_type")
+  monthlyRevenueZar   Int           @default(0) @map("monthly_revenue_zar")
+  headcount           Int           @default(0)
+  stillOperating      Boolean       @default(true) @map("still_operating")
+  graduatedToSupplier Boolean       @default(false) @map("graduated_to_supplier")
+  snapshotDate        DateTime      @default(now()) @map("snapshot_date")
+  createdAt           DateTime      @default(now()) @map("created_at")
+
+  founder Founder @relation(fields: [founderId], references: [id], onDelete: Cascade)
+
+  @@index([founderId, snapshotDate])
+  @@map("founder_outcomes")
+}
+
+// Generic sliding-window rate limiter (§ abuse prevention — signup spam,
+// submission-endpoint hammering against the paid Gemini scoring calls).
+// `key` is caller-defined (e.g. "submit:<founderId>", "signup:<ip>"); one
+// row per hit, counted within a window by src/lib/rate-limit.ts. Not linked
+// to Founder/Institution by FK since a signup rate-limit hit exists before
+// any account does.
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([key, createdAt])
+  @@map("rate_limit_hits")
+}
