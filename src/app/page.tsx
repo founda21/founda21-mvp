@@ -1,78 +1,164 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/wordmark";
-import { FUNDER_TYPE_OPTIONS } from "@/lib/funder-type";
+import { PrimaryButton } from "@/components/ui";
+import { MarketingSections } from "@/components/marketing-sections";
+import { MarketingNav } from "@/components/marketing-nav";
+import { TiltCard } from "@/components/tilt-card";
+import { ScrollReveal } from "@/components/scroll-reveal";
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="px-6 sm:px-12 py-6 flex items-center justify-between">
-        <Wordmark className="text-2xl" />
-        <nav className="flex items-center gap-4">
-          <Link href="/login" className="text-navy/60 text-sm font-semibold hover:text-navy">
+      <header className="sticky top-0 z-20 px-4 sm:px-12 py-4 sm:py-5 flex items-center justify-between gap-4 bg-white/85 backdrop-blur-sm border-b border-navy/5">
+        <div className="flex items-center gap-3 lg:gap-6 min-w-0">
+          <Wordmark className="text-xl sm:text-2xl shrink-0" />
+          <MarketingNav />
+        </div>
+        <nav className="flex items-center gap-3 sm:gap-4">
+          <Link href="/login" className="text-navy/60 text-sm font-semibold hover:text-navy hidden sm:inline">
             Log in
+          </Link>
+          <Link href="/get-started">
+            <PrimaryButton type="button" className="px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base shadow-[0_6px_20px_rgba(1,136,78,0.3)]">
+              Start
+            </PrimaryButton>
           </Link>
         </nav>
       </header>
 
-      <main className="flex-1 flex flex-col items-center px-6 sm:px-12 py-16 gap-16">
-        <div className="flex flex-col items-center text-center gap-6 max-w-3xl">
-          <p className="text-emerald text-sm sm:text-base font-semibold tracking-wide uppercase">
-            The Founder Readiness Standard · South Africa First
-          </p>
+      <main className="flex-1 flex flex-col items-center w-full">
+        {/* Hero */}
+        <section className="relative w-full flex flex-col items-center overflow-hidden">
+          <div
+            aria-hidden
+            className="animate-drift pointer-events-none absolute -top-24 -left-24 w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-emerald/20 blur-[70px]"
+          />
+          <div
+            aria-hidden
+            className="animate-drift pointer-events-none absolute -top-16 -right-24 w-64 h-64 sm:w-96 sm:h-96 rounded-full bg-navy/15 blur-[80px]"
+            style={{ animationDelay: "1.5s" }}
+          />
 
-          <h1 className="text-navy text-4xl sm:text-6xl font-bold tracking-tight leading-tight">
-            Know which founders are
-            <br />
-            <span className="text-emerald">actually investable.</span>
-          </h1>
+          <div className="relative w-full max-w-6xl px-4 sm:px-12 pt-8 sm:pt-24 pb-12 sm:pb-20 grid lg:grid-cols-[1.1fr_0.9fr] gap-8 sm:gap-14 items-center">
+            <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 sm:gap-6">
+              <p className="text-navy/50 text-sm sm:text-base font-medium">
+                Founda21 is Africa&apos;s investability readiness standard.
+              </p>
+              <p className="text-emerald text-xs sm:text-base font-semibold tracking-wide uppercase">
+                The Founder Readiness Standard · South Africa First
+              </p>
+              <h1 className="text-navy text-3xl sm:text-6xl font-bold tracking-tight leading-tight">
+                Stop guessing which founders are
+                <br className="hidden sm:block" />{" "}
+                <span className="text-emerald">actually investable.</span>
+              </h1>
+              <p className="text-navy/70 max-w-xl text-sm sm:text-lg">
+                Founda21 runs every founder in your pipeline through 21 checkpoints across five
+                dimensions, scored consistently by AI against a standard built from real, published
+                funder criteria, not invented, not self-reported.
+              </p>
+              <Link href="/get-started" className="animate-float-loop-slow inline-block">
+                <PrimaryButton type="button" className="px-7 sm:px-9 py-3 sm:py-4 text-base sm:text-lg shadow-[0_10px_30px_rgba(1,136,78,0.3)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(1,136,78,0.4)] transition-transform">
+                  Start
+                </PrimaryButton>
+              </Link>
+              <p className="text-navy/60 text-xs">
+                No founder ever pays. Funders get a live dashboard and portable credential per founder.
+              </p>
+            </div>
 
-          <p className="text-navy/70 max-w-xl text-base sm:text-lg">
-            21 checkpoints, five dimensions, scored by AI — not a self-reported survey. Founda21
-            gives funders a portable, verifiable readiness credential for every founder in their
-            pipeline, plus the eligibility and outcome reporting that goes with it.
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-5 w-full max-w-2xl">
-          <Link
-            href="/get-started/funder"
-            className="flex flex-col gap-2 rounded-2xl border-2 border-emerald bg-emerald/5 p-6 hover:shadow-md transition-all"
-          >
-            <span className="text-emerald text-xs font-semibold uppercase tracking-wide">Funder</span>
-            <span className="text-navy text-lg font-bold">I&apos;m a Funder</span>
-            <span className="text-navy/60 text-sm">
-              Corporates, DFIs, universities, accelerators, and investors — issue passcodes, track
-              readiness, and get funder-facing reports.
-            </span>
-          </Link>
-
-          <Link
-            href="/get-started/founder/funding-guide"
-            className="flex flex-col gap-2 rounded-2xl border-2 border-navy/15 p-6 hover:border-navy hover:shadow-md transition-all"
-          >
-            <span className="text-navy/60 text-xs font-semibold uppercase tracking-wide">Founder</span>
-            <span className="text-navy text-lg font-bold">I&apos;m a Founder</span>
-            <span className="text-navy/60 text-sm">
-              Have a passcode from your funder? Enter it to start the 21 checkpoints and earn your
-              Founda21 Investable credential.
-            </span>
-          </Link>
-        </div>
-
-        <div className="w-full max-w-4xl flex flex-col items-center gap-6">
-          <p className="text-navy/40 text-xs font-semibold uppercase tracking-wide">Who it&apos;s for</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
-            {FUNDER_TYPE_OPTIONS.map((option) => (
-              <div key={option.value} className="rounded-xl border border-navy/10 px-4 py-3 text-center">
-                <p className="text-navy text-sm font-semibold">{option.label}</p>
+            {/* Floating 3D credential card, desktop only. Three nested layers,
+                each owning its own transform, so the one-shot entrance, the
+                infinite bob, and the mouse-driven tilt never fight over the
+                same element's `transform` property. */}
+            <div className="hidden lg:flex justify-center [perspective:1200px]">
+              <div className="animate-float-in">
+                <div className="animate-float-loop">
+                  <TiltCard className="rounded-3xl border border-navy/10 bg-white p-7 w-80 shadow-[0_30px_60px_rgba(10,31,68,0.16)]">
+                    <div className="flex items-center justify-between mb-5">
+                      <Wordmark className="text-base" />
+                      <span className="rounded-full bg-emerald/15 text-emerald text-[10px] font-bold uppercase tracking-wide px-2.5 py-1">
+                        Investable
+                      </span>
+                    </div>
+                    <p className="text-navy/60 text-xs uppercase tracking-wide font-semibold">Overall readiness</p>
+                    <p className="text-navy text-3xl font-bold mb-4">21 / 21 checkpoints</p>
+                    <div className="flex flex-col gap-2">
+                      {[
+                        { label: "Idea & Reality", value: 100 },
+                        { label: "Company & Traction", value: 100 },
+                        { label: "Investor & Deal Readiness", value: 100 },
+                      ].map((row) => (
+                        <div key={row.label}>
+                          <div className="flex items-center justify-between text-[11px] text-navy/50 mb-1">
+                            <span>{row.label}</span>
+                            <span>{row.value}%</span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-navy/10 overflow-hidden">
+                            <div className="h-full rounded-full bg-emerald" style={{ width: `${row.value}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TiltCard>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        </section>
+
+        <MarketingSections />
+
+        {/* Credibility (scroll section, not a tab) */}
+        <section className="relative w-full bg-navy/[0.03] px-4 sm:px-12 py-12 sm:py-20 overflow-hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 sm:w-[420px] sm:h-[420px] rounded-full bg-emerald/5 blur-[80px]"
+          />
+          <ScrollReveal className="relative max-w-4xl mx-auto grid sm:grid-cols-[0.8fr_1.2fr] gap-6 sm:gap-10 items-center tilt-group">
+            <div className="tilt-card-alt tilt-card mx-auto rounded-3xl border border-navy/10 bg-white p-6 sm:p-7 w-full max-w-xs shadow-[0_20px_40px_rgba(10,31,68,0.1)]">
+              <p className="text-emerald text-4xl sm:text-5xl font-bold">60%+</p>
+              <p className="text-navy/60 text-sm mt-2">
+                of rejected African startup pitches in 2024 lacked robust financial projections or a
+                clear go-to-market strategy (CcHUB).
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:gap-4 text-center sm:text-left">
+              <h2 className="text-navy text-2xl sm:text-3xl font-bold">Not invented by AI</h2>
+              <p className="text-navy/70 text-base sm:text-lg">
+                The 21 checkpoints come from structured research into what real funders, ESD fund
+                managers, DFIs, and accelerators publicly say they require. AI applies that standard
+                consistently to every founder; it didn&apos;t decide what matters.
+              </p>
+              <Link href="/methodology" className="text-emerald font-semibold text-sm underline self-center sm:self-start">
+                Read the full provenance and methodology statement
+              </Link>
+            </div>
+          </ScrollReveal>
+        </section>
+
+        {/* Final CTA */}
+        <section className="relative w-full bg-brand px-4 sm:px-12 py-12 sm:py-20 flex flex-col items-center text-center gap-5 overflow-hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-20 left-1/2 -translate-x-1/2 w-72 h-40 sm:w-[500px] sm:h-52 rounded-full bg-emerald/25 blur-[70px]"
+          />
+          <h2 className="relative text-white text-2xl sm:text-3xl font-bold">Ready to see who&apos;s actually ready?</h2>
+          <Link href="/get-started" className="relative animate-float-loop inline-block">
+            <PrimaryButton type="button" className="px-7 sm:px-9 py-3 sm:py-4 text-base sm:text-lg shadow-[0_10px_30px_rgba(1,136,78,0.45)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(1,136,78,0.55)] transition-transform">
+              Start
+            </PrimaryButton>
+          </Link>
+        </section>
       </main>
 
-      <footer className="px-6 sm:px-12 py-8 text-center text-navy/50 text-xs">
-        <Wordmark /> — Founda21 Investable, earned only by clearing all 21. No founder ever pays.
+      <footer className="px-4 sm:px-12 py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-navy/50 text-xs">
+        <Wordmark className="text-base" />
+        <div className="flex items-center gap-4">
+          <Link href="/methodology" className="hover:text-navy">Methodology</Link>
+          <Link href="/terms" className="hover:text-navy">Terms</Link>
+          <Link href="/privacy" className="hover:text-navy">Privacy</Link>
+        </div>
       </footer>
     </div>
   );

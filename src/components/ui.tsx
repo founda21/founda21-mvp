@@ -16,7 +16,7 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`rounded-lg border border-navy/20 px-3 py-2 text-navy placeholder:text-navy/40 focus:outline-none focus:ring-2 focus:ring-emerald ${props.className ?? ""}`}
+      className={`rounded-lg border border-navy/20 bg-surface px-3 py-2 text-navy placeholder:text-navy/60 focus:outline-none focus:ring-2 focus:ring-emerald ${props.className ?? ""}`}
     />
   );
 }
@@ -25,7 +25,7 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`rounded-lg border border-navy/20 px-3 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-emerald ${props.className ?? ""}`}
+      className={`rounded-lg border border-navy/20 bg-surface px-3 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-emerald ${props.className ?? ""}`}
     />
   );
 }
@@ -34,7 +34,7 @@ export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
       {...props}
-      className={`rounded-lg border border-navy/20 px-3 py-2 text-navy placeholder:text-navy/40 focus:outline-none focus:ring-2 focus:ring-emerald ${props.className ?? ""}`}
+      className={`rounded-lg border border-navy/20 bg-surface px-3 py-2 text-navy placeholder:text-navy/60 focus:outline-none focus:ring-2 focus:ring-emerald ${props.className ?? ""}`}
     />
   );
 }
@@ -52,7 +52,7 @@ export function SecondaryButton(props: ButtonHTMLAttributes<HTMLButtonElement>) 
   return (
     <button
       {...props}
-      className={`rounded-full border border-navy text-navy px-6 py-2.5 text-sm font-semibold hover:bg-navy hover:text-white transition-colors disabled:opacity-50 ${props.className ?? ""}`}
+      className={`rounded-full border border-navy text-navy px-6 py-2.5 text-sm font-semibold hover:bg-brand hover:text-white transition-colors disabled:opacity-50 ${props.className ?? ""}`}
     />
   );
 }

@@ -17,9 +17,17 @@ function useSimulatedProgress(active: boolean): number {
   const [progress, setProgress] = useState(0);
   const startRef = useRef<number | null>(null);
 
+  // Reset during render on either transition (React's documented pattern),
+  // rather than a synchronous setState at the top of the effect below —
+  // the effect now only owns the interval subscription.
+  const [prevActive, setPrevActive] = useState(active);
+  if (active !== prevActive) {
+    setPrevActive(active);
+    setProgress(0);
+  }
+
   useEffect(() => {
     if (!active) {
-      setProgress(0);
       startRef.current = null;
       return;
     }

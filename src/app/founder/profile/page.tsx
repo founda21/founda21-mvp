@@ -1,8 +1,9 @@
 import { requireFounder } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updateFounderBio, updateVentureStage } from "@/lib/actions/founder";
+import { updateFounderBio, updateVentureStage, addOutcomeSnapshot } from "@/lib/actions/founder";
 import { FounderTabs } from "@/components/founder-tabs";
 import { VentureStageField } from "@/components/venture-stage-field";
+import { FounderOutcomeIntakeFields } from "@/components/founder-outcome-intake-fields";
 import { Field, Textarea, PrimaryButton, ErrorBanner, InfoBanner } from "@/components/ui";
 import { annualTurnoverBandLabel, entityTypeLabel } from "@/lib/founder-eligibility";
 import { ventureStageLabel } from "@/lib/venture-stage";
@@ -15,6 +16,11 @@ export default async function FounderProfilePage({
   const { error, message } = await searchParams;
   const { founder } = await requireFounder();
   const eligibility = await prisma.founderEligibility.findUnique({ where: { founderId: founder.id } });
+  const outcomes = await prisma.founderOutcome.findMany({
+    where: { founderId: founder.id },
+    orderBy: { snapshotDate: "desc" },
+  });
+  const latestOutcome = outcomes[0];
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-8">
@@ -61,7 +67,7 @@ export default async function FounderProfilePage({
           <div>
             <h2 className="text-navy font-bold">Eligibility & reporting details</h2>
             <p className="text-navy/60 text-sm mt-1">
-              This is what your funder(s) use for eligibility and outcome reporting — it never affects your
+              This is what your funder(s) use for eligibility and outcome reporting, it never affects your
               checkpoint scores. If anything here is wrong, ask your funder to help you correct it, since it
               feeds their own reporting.
             </p>
@@ -71,10 +77,44 @@ export default async function FounderProfilePage({
             <ReadOnlyField label="Black women ownership" value={`${eligibility.blackWomenOwnershipPct}%`} />
             <ReadOnlyField label="Annual turnover band" value={annualTurnoverBandLabel(eligibility.annualTurnoverBand)} />
             <ReadOnlyField label="Entity type" value={entityTypeLabel(eligibility.entityType)} />
-            <ReadOnlyField label="CIPC number" value={eligibility.cipcNumber ?? "—"} />
+            <ReadOnlyField label="CIPC number" value={eligibility.cipcNumber ?? "Not provided"} />
           </div>
         </section>
       )}
+
+      <section className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-navy font-bold">Outcome snapshot</h2>
+          <p className="text-navy/60 text-sm mt-1">
+            Unlike eligibility, this is yours to keep current, capital raised, revenue, and headcount change
+            as you grow. Add a new snapshot whenever there&apos;s something worth recording; your funders see
+            how it&apos;s moved over time, this never affects your checkpoint scores.
+          </p>
+        </div>
+
+        {outcomes.length > 0 && (
+          <div className="flex flex-col divide-y divide-navy/10 border border-navy/10 rounded-xl overflow-hidden">
+            {outcomes.map((o) => (
+              <div key={o.id} className="flex items-center justify-between px-5 py-3 gap-3">
+                <p className="text-navy/60 text-xs">
+                  {o.snapshotDate.toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" })}
+                </p>
+                <p className="text-navy text-sm text-right">
+                  R{o.capitalRaisedZar.toLocaleString("en-ZA")} raised · R{o.monthlyRevenueZar.toLocaleString("en-ZA")}
+                  /mo · {o.headcount} headcount
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form action={addOutcomeSnapshot} className="flex flex-col gap-4">
+          <FounderOutcomeIntakeFields initial={latestOutcome} />
+          <PrimaryButton type="submit" className="self-start">
+            Add snapshot
+          </PrimaryButton>
+        </form>
+      </section>
     </div>
   );
 }

@@ -33,7 +33,7 @@ export function GuidanceBrowser() {
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search — e.g. 'CP8', 'cooldown', 'traction'…"
+        placeholder="Search, e.g. 'CP8', 'cooldown', 'traction'…"
       />
 
       <div>
@@ -45,7 +45,7 @@ export function GuidanceBrowser() {
               <p className="text-navy/70 text-sm mt-2">{f.answer}</p>
             </details>
           ))}
-          {faq.length === 0 && <p className="text-navy/40 text-sm">No matches.</p>}
+          {faq.length === 0 && <p className="text-navy/60 text-sm">No matches.</p>}
         </div>
       </div>
 
@@ -61,7 +61,7 @@ export function GuidanceBrowser() {
               <p className="text-navy/70 text-sm mt-2">{c.requirement}</p>
             </details>
           ))}
-          {checkpoints.length === 0 && <p className="text-navy/40 text-sm">No matches.</p>}
+          {checkpoints.length === 0 && <p className="text-navy/60 text-sm">No matches.</p>}
         </div>
       </div>
     </div>

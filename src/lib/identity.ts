@@ -50,7 +50,7 @@ export function validateSaId(idNumber: string): { ok: true } | { ok: false; erro
   }
   const expectedCheckDigit = luhnCheckDigit(idNumber.slice(0, 12));
   if (expectedCheckDigit !== Number(idNumber[12])) {
-    return { ok: false, error: "That SA ID number failed the checksum validation — check it and try again." };
+    return { ok: false, error: "That SA ID number failed the checksum validation, check it and try again." };
   }
   return { ok: true };
 }

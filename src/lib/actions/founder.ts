@@ -6,17 +6,17 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
-import { VentureType, VentureStage, IdType } from "@/generated/prisma/enums";
+import { VentureType, VentureStage } from "@/generated/prisma/enums";
 import { requireFounder } from "@/lib/auth";
 import { parseEligibilityForm, computeEligibilityDerived } from "@/lib/founder-eligibility";
 import { parseOutcomeIntakeForm } from "@/lib/founder-outcome";
 import { validatePasscode, recordPasscodeUse } from "@/lib/passcode";
-import { validateIdNumber, normalizePhoneToE164, hashIdNumber } from "@/lib/identity";
+import { normalizePhoneToE164 } from "@/lib/identity";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { notifyFounderWelcome } from "@/lib/notifications";
 
 const VALID_VENTURE_TYPES = new Set(Object.values(VentureType));
 const VALID_VENTURE_STAGES = new Set(Object.values(VentureStage));
-const VALID_ID_TYPES = new Set(Object.values(IdType));
 
 const SIGNUP_RATE_LIMIT = 5;
 const SIGNUP_RATE_WINDOW_MS = 60 * 60 * 1000;
@@ -36,64 +36,46 @@ type FounderFormFields = {
   fullName: string;
   ventureName: string;
   ventureType: VentureType;
-  ventureStage: VentureStage;
   email: string;
   password: string;
   phoneNumber: string;
-  idType: IdType;
-  idNumber: string;
 };
 
-// Signup captures name, venture, venture type/stage, email, password, and
-// the identity anchor (§ system integrity fix 1: phone + ID/passport,
-// consent to collecting the ID number). Ownership/entity and outcome
-// baseline (funder reporting data, not needed to start checkpoints) are
-// captured separately right after signup, on /complete-profile — see
-// completeFounderProfile below.
+// Signup captures name, venture, venture type, email, password, and phone
+// (§ the anti-duplicate-account signal, for now — see identity-fields.tsx
+// for why SA ID/passport collection was dropped). Venture stage, ownership/
+// entity, and outcome baseline (funder reporting data, none of it needed to
+// start checkpoints) are all captured separately right after signup, on
+// /complete-profile — see completeFounderProfile below.
 function parseFounderForm(formData: FormData): FounderFormFields | { error: string } {
   const fullName = String(formData.get("fullName") ?? "").trim();
   const ventureName = String(formData.get("ventureName") ?? "").trim();
   const ventureType = String(formData.get("ventureType") ?? "");
-  const ventureStageRaw = String(formData.get("ventureStage") ?? "");
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const phoneRaw = String(formData.get("phoneNumber") ?? "").trim();
-  const idTypeRaw = String(formData.get("idType") ?? "");
-  const idNumberRaw = String(formData.get("idNumber") ?? "").trim();
-  const consent = formData.get("identityConsent");
+  const provenanceAcknowledged = formData.get("provenanceAcknowledged");
 
-  if (!fullName || !ventureName || !email || !password || !phoneRaw || !idNumberRaw) {
+  if (!fullName || !ventureName || !email || !password || !phoneRaw) {
     return { error: "All fields are required." };
   }
   if (!VALID_VENTURE_TYPES.has(ventureType as VentureType)) {
     return { error: "Select a venture type." };
   }
-  if (!VALID_VENTURE_STAGES.has(ventureStageRaw as VentureStage)) {
-    return { error: "Select your venture stage." };
-  }
-  if (!VALID_ID_TYPES.has(idTypeRaw as IdType)) {
-    return { error: "Select whether you're providing an SA ID or a passport number." };
-  }
-  if (!consent) {
-    return { error: "You must consent to Founda21 collecting your ID/passport number to verify your identity." };
+  if (!provenanceAcknowledged) {
+    return { error: "You must acknowledge the Founda21 Standard Provenance & Methodology Statement." };
   }
 
   const phoneResult = normalizePhoneToE164(phoneRaw);
   if (!phoneResult.ok) return { error: phoneResult.error };
 
-  const idValidation = validateIdNumber(idTypeRaw as IdType, idNumberRaw);
-  if (!idValidation.ok) return { error: idValidation.error };
-
   return {
     fullName,
     ventureName,
     ventureType: ventureType as VentureType,
-    ventureStage: ventureStageRaw as VentureStage,
     email,
     password,
     phoneNumber: phoneResult.value,
-    idType: idTypeRaw as IdType,
-    idNumber: idNumberRaw,
   };
 }
 
@@ -131,18 +113,16 @@ async function createFounderInCohort(
 
   if (error || !data.user) {
     const message = error?.message?.toLowerCase().includes("already")
-      ? "An account already exists for that email — use \"Already have an account? Log in\" below instead."
+      ? "An account already exists for that email, use \"Already have an account? Log in\" below instead."
       : (error?.message ?? "Sign up failed.");
     return { ok: false, error: message };
   }
 
-  // The raw ID/passport number only ever exists here, in memory — hashed
-  // immediately, never stored or logged. Uniqueness (§ identity anchor) is
-  // enforced by the DB unique indexes on phone_number/id_number_hash; a
-  // duplicate identity surfaces as a Prisma P2002 error below, not a
-  // pre-check, so there's no TOCTOU gap between checking and creating.
-  const idNumberHash = hashIdNumber(fields.idNumber);
-
+  // Uniqueness (§ anti-duplicate-account signal, for now) is enforced by the
+  // DB unique index on phone_number; a duplicate surfaces as a Prisma P2002
+  // error below, not a pre-check, so there's no TOCTOU gap between checking
+  // and creating. ventureStage is intentionally left unset here — captured
+  // right after, on /complete-profile, alongside eligibility/outcome.
   let founder = await prisma.founder.findUnique({ where: { userId: data.user.id } });
   if (!founder) {
     try {
@@ -153,11 +133,9 @@ async function createFounderInCohort(
           fullName: fields.fullName,
           ventureName: fields.ventureName,
           ventureType: fields.ventureType,
-          ventureStage: fields.ventureStage,
           currentStage: 1,
           phoneNumber: fields.phoneNumber,
-          idType: fields.idType,
-          idNumberHash,
+          provenanceAcknowledgedAt: new Date(),
         },
       });
     } catch (createError) {
@@ -165,19 +143,22 @@ async function createFounderInCohort(
       // leave an orphaned Supabase account with no Founder row behind it.
       await admin.auth.admin.deleteUser(data.user.id);
       if (isUniqueConstraintError(createError, "phone_number")) {
-        return { ok: false, error: "This phone number already has a Founda21 account — log in instead." };
-      }
-      if (isUniqueConstraintError(createError, "id_number_hash")) {
-        return {
-          ok: false,
-          error: "This identity already has a Founda21 account — log in instead of creating a new one.",
-        };
+        return { ok: false, error: "This phone number already has a Founda21 account, log in instead." };
       }
       throw createError;
     }
     await prisma.stageStatus.create({
       data: { founderId: founder.id, stage: 1, status: "in_progress" },
     });
+    // Fire-and-forget, like every other notification — a welcome email
+    // failing to send must never block account creation. Only for a
+    // genuinely new account, not a returning founder joining another cohort
+    // (they're inside the `if (!founder)` branch above already).
+    try {
+      await notifyFounderWelcome({ fullName: fields.fullName, ventureName: fields.ventureName, email: fields.email });
+    } catch (error) {
+      console.error(`notifyFounderWelcome failed for new founder ${founder.id}:`, error);
+    }
   }
   await ensureCohortMembership(founder.id, cohortId);
 
@@ -226,7 +207,7 @@ async function joinWithExistingAccount(passcode: string, formData: FormData, err
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) {
     redirect(
-      `${errorBase}?error=${encodeURIComponent("Couldn't log in — check your email and password.")}&mode=login`,
+      `${errorBase}?error=${encodeURIComponent("Couldn't log in, check your email and password.")}&mode=login`,
     );
   }
 
@@ -234,7 +215,7 @@ async function joinWithExistingAccount(passcode: string, formData: FormData, err
   if (!founder) {
     await supabase.auth.signOut();
     redirect(
-      `${errorBase}?error=${encodeURIComponent('No Founda21 founder account found for that email — sign up instead.')}&mode=login`,
+      `${errorBase}?error=${encodeURIComponent('No Founda21 founder account found for that email, sign up instead.')}&mode=login`,
     );
   }
 
@@ -393,8 +374,12 @@ export async function completeFounderProfile(formData: FormData) {
 
   const bio = String(formData.get("bio") ?? "").trim();
   const startupSummary = String(formData.get("startupSummary") ?? "").trim();
+  const ventureStageRaw = String(formData.get("ventureStage") ?? "");
   if (!bio || !startupSummary) {
     redirect(`/complete-profile?error=${encodeURIComponent("Tell us a bit about you and your startup.")}`);
+  }
+  if (!VALID_VENTURE_STAGES.has(ventureStageRaw as VentureStage)) {
+    redirect(`/complete-profile?error=${encodeURIComponent("Select your venture stage.")}`);
   }
 
   const eligibility = parseEligibilityForm(formData);
@@ -408,7 +393,7 @@ export async function completeFounderProfile(formData: FormData) {
 
   await prisma.founder.update({
     where: { id: founder.id },
-    data: { bio, startupSummary },
+    data: { bio, startupSummary, ventureStage: ventureStageRaw as VentureStage },
   });
 
   const derived = computeEligibilityDerived(eligibility);
@@ -449,4 +434,33 @@ export async function completeFounderProfile(formData: FormData) {
   });
 
   redirect("/founder");
+}
+
+// Outcome tracking is designed as multiple snapshots over time (intake, then
+// re-polled at T+6/T+12) — this is what actually lets a funder see the
+// "development delta" the InstitutionalReport is built on. Deliberately
+// INSERTS a new FounderOutcome row rather than updating the intake one in
+// place, so the history stays intact. Founder-authored, like intake; never
+// read by the scoring engine.
+export async function addOutcomeSnapshot(formData: FormData) {
+  const { founder } = await requireFounder();
+
+  const outcome = parseOutcomeIntakeForm(formData);
+  if ("error" in outcome) {
+    redirect(`/founder/profile?error=${encodeURIComponent(outcome.error)}`);
+  }
+
+  await prisma.founderOutcome.create({
+    data: {
+      founderId: founder.id,
+      capitalRaisedZar: outcome.capitalRaisedZar,
+      capitalType: outcome.capitalType,
+      monthlyRevenueZar: outcome.monthlyRevenueZar,
+      headcount: outcome.headcount,
+      stillOperating: outcome.stillOperating,
+      graduatedToSupplier: outcome.graduatedToSupplier,
+    },
+  });
+
+  redirect(`/founder/profile?message=${encodeURIComponent("Outcome snapshot added.")}`);
 }

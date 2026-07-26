@@ -2,8 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Funder-side (dashboard) light/dark theme. `navy` and `surface` are the two
+   Tailwind color tokens that actually invert (see tailwind.config.ts); `brand`
+   stays a fixed dark-navy alias for the handful of solid-fill + white-text
+   elements (active tabs, buttons) that must render the same way in both
+   themes. Scoped to a `.dark` ancestor class on the dashboard's own wrapper
+   div (src/app/dashboard/layout.tsx), never on <html>/<body> — a funder
+   choosing dark mode must never affect the founder or marketing sides, which
+   share this same CSS bundle. */
+:root {
+  --navy-rgb: 10 31 68;
+  --surface-rgb: 255 255 255;
+}
+
+.dark {
+  --navy-rgb: 226 232 240;
+  --surface-rgb: 10 15 26;
+}
+
 body {
   color: #0a1f44;
   background: #ffffff;
   font-family: Helvetica, Arial, sans-serif;
+  /* Lives on body, not on an inner wrapper div — overflow-x-hidden on an
+     ancestor of a `position: sticky` element breaks its stickiness in most
+     browsers (it stops sticking to the viewport and starts "sticking"
+     within that ancestor's box instead, which never has its own scrollable
+     bounds, so it just scrolls away with everything else). body is already
+     the real scrolling root, so this is safe. */
+  overflow-x: hidden;
+}
+
+/* Corporate 3D tilt-card — subtle perspective lift on hover, no JS. */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+  will-change: transform;
+}
+.tilt-group:hover .tilt-card {
+  transform: perspective(900px) rotateX(4deg) rotateY(-4deg) translateY(-6px) translateZ(0);
+}
+.tilt-card-alt.tilt-card {
+  transform: perspective(900px) rotateX(2deg) rotateY(3deg);
+}
+.tilt-group:hover .tilt-card-alt.tilt-card {
+  transform: perspective(900px) rotateX(-3deg) rotateY(6deg) translateY(-8px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* One-shot settle-in on mount. */
+@keyframes float-in {
+  0% { opacity: 0; transform: translateY(24px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-float-in {
+  animation: float-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Gentle infinite bob for the hero card and CTA buttons — applied on an
+   OUTER wrapper, never the same element TiltCard drives with JS, so the
+   looping translateY here and the mouse-driven rotateX/rotateY there never
+   fight over the same `transform` property. transform-only, no layout
+   changes, cheap for a real browser to keep running. */
+@keyframes float-loop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float-loop {
+  animation: float-loop 4.5s ease-in-out infinite;
+}
+.animate-float-loop-slow {
+  animation: float-loop 5.5s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+/* Slow drifting gradient position for the hero backdrop blobs — subtle,
+   transform/background-position only. */
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(20px, -16px); }
+}
+.animate-drift {
+  animation: drift 12s ease-in-out infinite;
 }

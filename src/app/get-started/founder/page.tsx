@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/wordmark";
-import { Field, Input, Select, PrimaryButton, ErrorBanner } from "@/components/ui";
-import { VentureStageField } from "@/components/venture-stage-field";
+import { Field, Input, PrimaryButton, ErrorBanner } from "@/components/ui";
+import { VentureTypeField } from "@/components/venture-type-field";
 import { IdentityFields } from "@/components/identity-fields";
 import { FixedBackLink } from "@/components/back-link";
 import { joinViaPasscode, joinExistingAccountViaPasscode } from "@/lib/actions/founder";
@@ -23,7 +23,7 @@ export default async function FounderGetStartedPage({
         <div className="text-center">
           <h1 className="text-navy text-2xl font-bold">Start your Founda21 assessment</h1>
           <p className="text-navy/60 text-sm mt-1">
-            You&apos;ll need the passcode your funder gave you — Founda21 doesn&apos;t offer
+            You&apos;ll need the passcode your funder gave you, Founda21 doesn&apos;t offer
             self-serve signup without one.
           </p>
         </div>
@@ -32,7 +32,7 @@ export default async function FounderGetStartedPage({
           <Link
             href="/get-started/founder"
             className={`flex-1 text-center rounded-full py-2 transition-colors ${
-              !isLogin ? "bg-navy text-white" : "text-navy/60 hover:bg-navy/5"
+              !isLogin ? "bg-brand text-white" : "text-navy/60 hover:bg-navy/5"
             }`}
           >
             New here? Sign up
@@ -40,7 +40,7 @@ export default async function FounderGetStartedPage({
           <Link
             href="/get-started/founder?mode=login"
             className={`flex-1 text-center rounded-full py-2 transition-colors ${
-              isLogin ? "bg-navy text-white" : "text-navy/60 hover:bg-navy/5"
+              isLogin ? "bg-brand text-white" : "text-navy/60 hover:bg-navy/5"
             }`}
           >
             Already have an account? Log in
@@ -53,52 +53,58 @@ export default async function FounderGetStartedPage({
           <>
             <p className="text-navy/60 text-sm text-center">
               Already working through Founda21 with another funder? Enter the new passcode and log
-              in — your checkpoint progress carries over, nothing restarts.
+              in, your checkpoint progress carries over, nothing restarts.
             </p>
-            <form action={joinExistingAccountViaPasscode} className="flex flex-col gap-4">
+            <form action={joinExistingAccountViaPasscode} className="flex flex-col gap-4" autoComplete="off">
               <Field label="Passcode">
-                <Input name="passcode" type="text" required placeholder="Passcode from your funder" />
+                <Input name="passcode" type="text" required placeholder="Passcode from your funder" autoComplete="off" />
               </Field>
               <Field label="Email">
-                <Input name="email" type="email" required placeholder="you@example.com" />
+                <Input name="email" type="email" required placeholder="you@example.com" autoComplete="off" />
               </Field>
               <Field label="Password">
-                <Input name="password" type="password" required placeholder="Your password" />
+                <Input name="password" type="password" required placeholder="Your password" autoComplete="off" />
               </Field>
+              <Link href="/forgot-password" className="text-emerald text-sm font-semibold -mt-2 self-end">
+                Forgot password?
+              </Link>
               <PrimaryButton type="submit" className="mt-2">
                 Log in and join
               </PrimaryButton>
             </form>
           </>
         ) : (
-          <form action={joinViaPasscode} className="flex flex-col gap-4">
+          <form action={joinViaPasscode} className="flex flex-col gap-4" autoComplete="off">
             <Field label="Passcode">
-              <Input name="passcode" type="text" required placeholder="Passcode from your funder" />
+              <Input name="passcode" type="text" required placeholder="Passcode from your funder" autoComplete="off" />
             </Field>
             <Field label="Your full name">
-              <Input name="fullName" type="text" required placeholder="Jane Founder" />
+              <Input name="fullName" type="text" required placeholder="Jane Founder" autoComplete="off" />
             </Field>
             <Field label="Venture name">
-              <Input name="ventureName" type="text" required placeholder="Your startup's name" />
+              <Input name="ventureName" type="text" required placeholder="Your startup's name" autoComplete="off" />
             </Field>
-            <Field label="Venture type">
-              <Select name="ventureType" required defaultValue="">
-                <option value="" disabled>
-                  Select one
-                </option>
-                <option value="B2C">B2C</option>
-                <option value="B2B">B2B</option>
-                <option value="HARDWARE">Hardware</option>
-              </Select>
-            </Field>
-            <VentureStageField />
+            <VentureTypeField />
             <Field label="Email">
-              <Input name="email" type="email" required placeholder="you@example.com" />
+              <Input name="email" type="email" required placeholder="you@example.com" autoComplete="off" />
             </Field>
             <Field label="Password">
-              <Input name="password" type="password" required minLength={8} placeholder="At least 8 characters" />
+              <Input name="password" type="password" required minLength={8} placeholder="At least 8 characters" autoComplete="new-password" />
             </Field>
             <IdentityFields />
+
+            <label className="flex items-start gap-2.5 text-xs text-navy/60">
+              <input type="checkbox" name="provenanceAcknowledged" required className="mt-0.5 accent-emerald" />
+              <span>
+                I have read and understood the Founda21 Standard{" "}
+                <Link href="/methodology" target="_blank" rel="noreferrer" className="underline">
+                  Provenance &amp; Methodology Statement
+                </Link>
+                , including how assessment criteria are derived and how to make representations if I
+                disagree with an outcome.
+              </span>
+            </label>
+
             <PrimaryButton type="submit" className="mt-2">
               Join and start Stage 1
             </PrimaryButton>
@@ -106,7 +112,7 @@ export default async function FounderGetStartedPage({
         )}
 
         {!isLogin && (
-          <p className="text-center text-xs text-navy/40">
+          <p className="text-center text-xs text-navy/60">
             By joining you agree to our{" "}
             <Link href="/terms" className="text-navy/60 underline">
               Terms

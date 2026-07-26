@@ -47,12 +47,12 @@ export function meetsTractionMinimums(
     const payingClients = data?.b2b?.payingClients ?? 0;
     return {
       met: pilots >= minimums.pilotsMin || payingClients >= minimums.payingClientsMin,
-      detail: `${pilots} pilots (need ${minimums.pilotsMin}–${minimums.pilotsMax}) or ${payingClients} paying clients (need ${minimums.payingClientsMin}–${minimums.payingClientsMax})`,
+      detail: `${pilots} pilots (need ${minimums.pilotsMin} to ${minimums.pilotsMax}) or ${payingClients} paying clients (need ${minimums.payingClientsMin} to ${minimums.payingClientsMax})`,
     };
   }
 
   // Hardware minimums are not specified in the build spec (§9 flags this as
   // "confirm against framework doc"). Until confirmed, don't block Hardware
   // ventures on traction.
-  return { met: true, detail: "Hardware traction minimums not yet specified in the framework — not enforced." };
+  return { met: true, detail: "Hardware traction minimums not yet specified in the framework, not enforced." };
 }

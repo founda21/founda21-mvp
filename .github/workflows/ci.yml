@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# Dummy values, not real secrets — this is what lets CI run without anyone
+# configuring GitHub secrets. Typecheck/lint/test/build never need a live
+# database, Supabase project, or Gemini key: Prisma's adapter doesn't
+# connect until a query actually runs, and GEMINI_API_KEY is only read
+# inside request handlers, never at module load or build time.
+env:
+  DATABASE_URL: "postgresql://user:pass@localhost:5432/ci_placeholder"
+  DIRECT_URL: "postgresql://user:pass@localhost:5432/ci_placeholder"
+  NEXT_PUBLIC_SUPABASE_URL: "https://ci-placeholder.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "ci-placeholder-anon-key"
+  SUPABASE_SERVICE_ROLE_KEY: "ci-placeholder-service-role-key"
+  GEMINI_API_KEY: "ci-placeholder-gemini-key"
+  ID_HASH_PEPPER: "ci-placeholder-pepper-not-for-real-use-0000000000000000"
+  PLATFORM_ADMIN_EMAILS: "ci-placeholder@example.com"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build

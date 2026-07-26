@@ -1,6 +1,7 @@
 import { requireFounder } from "@/lib/auth";
 import { Wordmark } from "@/components/wordmark";
 import { Field, Textarea, ErrorBanner, PrimaryButton } from "@/components/ui";
+import { VentureStageField } from "@/components/venture-stage-field";
 import { FounderEligibilityFields } from "@/components/founder-eligibility-fields";
 import { FounderOutcomeIntakeFields } from "@/components/founder-outcome-intake-fields";
 import { completeFounderProfile } from "@/lib/actions/founder";
@@ -42,8 +43,8 @@ export default async function CompleteProfilePage({
               placeholder="e.g. Naledi, from Soweto, Johannesburg. Ex-logistics coordinator, now building GreenCart."
             />
           </Field>
-          <p className="text-navy/40 text-xs -mt-3">
-            Funders will see this — keep it short, it doesn&apos;t need to be formal.
+          <p className="text-navy/60 text-xs -mt-3">
+            Funders will see this, keep it short, it doesn&apos;t need to be formal.
           </p>
 
           <Field label="About your startup">
@@ -54,11 +55,12 @@ export default async function CompleteProfilePage({
               placeholder="e.g. GreenCart helps township spaza shops order stock directly from wholesalers, cutting out middlemen markups."
             />
           </Field>
-          <p className="text-navy/40 text-xs -mt-3">
-            A quick one-liner or two, not a pitch deck — funders will read this before diving into
+          <p className="text-navy/60 text-xs -mt-3">
+            A quick one-liner or two, not a pitch deck, funders will read this before diving into
             your checkpoints.
           </p>
 
+          <VentureStageField />
           <FounderEligibilityFields />
           <FounderOutcomeIntakeFields />
           <PrimaryButton type="submit" className="mt-2">

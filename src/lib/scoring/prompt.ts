@@ -1,10 +1,21 @@
 import type { Checkpoint } from "@/lib/checkpoints";
 import { VentureType } from "@/generated/prisma/enums";
 
+// Real "today" for the scoring model to anchor against — without this, a
+// genuine past date (e.g. "active since January 2026") can read as an
+// impossible future date to a model with no other time reference, causing a
+// false fail. en-ZA formatting matches the date style already used elsewhere
+// in the product (e.g. cooldown-expiry messages).
+function formatTodayForPrompt(): string {
+  return new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
+}
+
 // Mirrors the system prompt in the build spec §11 verbatim, with the
 // checkpoint-specific focus/SA-thread/venture-type slots filled in.
 export function buildSystemPrompt(checkpoint: Checkpoint, ventureType: VentureType): string {
   return `You are the Founda21 scoring engine. You score a South African founder's submission for one checkpoint of the Founda21 standard. You are rigorous, fair, and honest. You reward specificity and real, local South African evidence. You penalise vagueness, hype, unsupported assertion, and generic global framing with no local substance.
+
+Today's date is ${formatTodayForPrompt()}. Treat any date on or before today as a real, valid past or present date — never penalise it as impossible or contradictory for being "in the future" unless it is genuinely later than today's date.
 
 Score the submission on exactly five dimensions, each 0–20, using these bands: Absent 0–3, Minimal 4–7, Adequate 8–11, Strong 12–15, Exceptional 16–20.
 

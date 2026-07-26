@@ -3,11 +3,11 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireInstitutionAdmin } from "@/lib/auth";
+import { requireApprovedInstitutionAdmin } from "@/lib/auth";
 import { generateInviteCode } from "@/lib/invite-code";
 
 export async function createCohort(formData: FormData) {
-  const { institution } = await requireInstitutionAdmin();
+  const { institution } = await requireApprovedInstitutionAdmin();
   const name = String(formData.get("name") ?? "").trim();
 
   if (!name) {
@@ -55,7 +55,7 @@ export async function createCohort(formData: FormData) {
 // membership's cohort, so one funder can never toggle another funder's view
 // of a shared (portable) founder account.
 export async function toggleShortlist(membershipId: string, cohortId: string) {
-  const { institution } = await requireInstitutionAdmin();
+  const { institution } = await requireApprovedInstitutionAdmin();
 
   const membership = await prisma.cohortMembership.findUnique({
     where: { id: membershipId },

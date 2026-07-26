@@ -59,7 +59,7 @@ async function FileAttachments({ text, founderId }: { text: string; founderId: s
             📎 {r.label}
           </a>
         ) : (
-          <span key={i} className="text-navy/40 text-xs">
+          <span key={i} className="text-navy/60 text-xs">
             📎 {r.label} (file unavailable)
           </span>
         ),
@@ -236,7 +236,7 @@ export async function CheckpointEvidence({
               <div key={i} className="flex items-center gap-3 text-sm">
                 <span className="text-navy/50 font-mono text-xs">{m.date}</span>
                 <span className="font-semibold text-navy">{m.title}</span>
-                <span className="text-navy/60">— {m.owner}</span>
+                <span className="text-navy/60">({m.owner})</span>
               </div>
             ))}
           </div>

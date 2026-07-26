@@ -20,7 +20,7 @@ export default async function GuidancePage() {
       <div>
         <h2 className="text-navy font-bold">Ask for guidance</h2>
         <p className="text-navy/60 text-sm mt-1">
-          Everything about how checkpoints work and what each one needs — search or browse below.
+          Everything about how checkpoints work and what each one needs. Search or browse below.
         </p>
       </div>
 

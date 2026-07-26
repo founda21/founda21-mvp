@@ -33,6 +33,16 @@ enum FunderType {
   impact_investor_vc
 }
 
+// Manual review gate on new institution signups (§ signUpInstitution) —
+// anyone could otherwise self-serve into an account that sees founders'
+// checkpoint data, B-BBEE eligibility %, and outcome data. New signups start
+// `pending`; a platform admin approves or rejects from /admin.
+enum InstitutionStatus {
+  pending
+  approved
+  rejected
+}
+
 enum CohortMembershipStatus {
   active
   completed
@@ -104,6 +114,19 @@ model Institution {
   adminUserId  String     @unique @map("admin_user_id")
   createdAt    DateTime   @default(now()) @map("created_at")
 
+  status InstitutionStatus @default(pending) @map("status")
+
+  // One-time agreement to display the co-branded recruitment card ("in
+  // partnership with Founda21") as part of Founda21's own marketing — set
+  // the first time the institution downloads it, never re-asked after.
+  marketingCardConsentedAt DateTime? @map("marketing_card_consented_at")
+
+  // Recorded consent to the Founda21 Standard Provenance & Methodology
+  // Statement (§ /methodology) at signup — nullable because accounts created
+  // before this field existed have nothing to backfill; every new signup
+  // sets it.
+  provenanceAcknowledgedAt DateTime? @map("provenance_acknowledged_at")
+
   cohorts Cohort[]
 
   @@map("institutions")
@@ -124,10 +147,20 @@ model Cohort {
   expiresAt          DateTime? @map("expires_at")
   createdAt          DateTime  @default(now()) @map("created_at")
 
+  // Fairness gate (§ recruitment card never demands a stage) — the actual
+  // "complete Stage X by Y" ask is announced once, after recruitment closes,
+  // to every founder at the same time via sendCohortDeadlineAnnouncement, not
+  // printed on the card, so nobody gets extra days just for seeing the poster
+  // early. Nullable: no announcement has been sent yet.
+  announcedStage    Int?      @map("announced_stage")
+  announcedDeadline DateTime? @map("announced_deadline")
+  announcedAt       DateTime? @map("announced_at")
+
   institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   founders    Founder[]
   memberships CohortMembership[]
 
+  @@index([institutionId])
   @@map("cohorts")
 }
 
@@ -153,7 +186,13 @@ model CohortMembership {
   founder Founder @relation(fields: [founderId], references: [id], onDelete: Cascade)
   cohort  Cohort  @relation(fields: [cohortId], references: [id], onDelete: Cascade)
 
+  // The unique([founderId, cohortId]) index below only serves lookups that
+  // filter on founderId first — getCohortReport (the funder dashboard's
+  // hottest, most-loaded query) and sendCohortDeadlineAnnouncement both
+  // filter by cohortId alone, which needs its own index or every cohort page
+  // load sequential-scans this table as it grows.
   @@unique([founderId, cohortId])
+  @@index([cohortId])
   @@map("cohort_memberships")
 }
 
@@ -191,6 +230,11 @@ model Founder {
   phoneNumber  String? @unique @map("phone_number")
   idType       IdType? @map("id_type")
   idNumberHash String? @unique @map("id_number_hash")
+
+  // Recorded consent to the Founda21 Standard Provenance & Methodology
+  // Statement (§ /methodology) at signup — same nullability rationale as
+  // Institution.provenanceAcknowledgedAt above.
+  provenanceAcknowledgedAt DateTime? @map("provenance_acknowledged_at")
 
   // AI-generated funder-facing investment analysis (§ founder-analysis.ts) —
   // a SEPARATE Gemini call from the 21-checkpoint scoring engine, synthesizing

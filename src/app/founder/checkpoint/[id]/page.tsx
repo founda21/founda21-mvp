@@ -58,7 +58,7 @@ export default async function CheckpointPage({
     const reason = checkpointLockReason(founder, checkpointId);
     const message =
       reason === "venture-stage"
-        ? `This checkpoint needs a venture stage of ${ventureStageLabel(STAGE_MIN_VENTURE_STAGE[checkpoint.stage])} or later — update your stage on your home page once you're there.`
+        ? `This checkpoint needs a venture stage of ${ventureStageLabel(STAGE_MIN_VENTURE_STAGE[checkpoint.stage])} or later. Update your stage on your home page once you're there.`
         : "That checkpoint isn't unlocked yet.";
     redirect("/founder?error=" + encodeURIComponent(message));
   }
@@ -97,14 +97,14 @@ export default async function CheckpointPage({
           CP{checkpoint.id} · {checkpoint.name}
         </h1>
         <p className="text-navy/60 text-sm mt-1">{checkpoint.focus}</p>
-        <p className="text-navy/40 text-xs mt-1">SA thread: {checkpoint.saThread}</p>
-        <p className="text-navy/40 text-xs">Required artifact: {checkpoint.artifactType}</p>
+        <p className="text-navy/60 text-xs mt-1">SA thread: {checkpoint.saThread}</p>
+        <p className="text-navy/60 text-xs">Required artifact: {checkpoint.artifactType}</p>
       </div>
 
       <div className="rounded-xl border border-navy/10 bg-navy/[0.03] p-5">
         <p className="text-navy text-sm font-semibold mb-1.5">What&apos;s required for this checkpoint</p>
         <p className="text-navy/70 text-sm">{checkpoint.requirement}</p>
-        <p className="text-navy/40 text-xs mt-3">
+        <p className="text-navy/60 text-xs mt-3">
           Curious how this actually gets assessed? See{" "}
           <Link href="/founder/how-it-works" className="underline hover:text-navy/60">
             how Founda21 works
@@ -114,7 +114,7 @@ export default async function CheckpointPage({
       </div>
 
       <ErrorBanner message={error} />
-      {submitted && <InfoBanner message="Submitted and scored — see your result below." />}
+      {submitted && <InfoBanner message="Submitted and scored, see your result below." />}
 
       {latest && latestOutput && (
         <section className="flex flex-col gap-4 rounded-xl border border-navy/10 p-6">
@@ -187,7 +187,7 @@ export default async function CheckpointPage({
             ) : (
               <>
                 {proofMode === "file-required" && (
-                  <InfoBanner message="This checkpoint requires an uploaded document — use the Upload file button below. A written description alone won't pass." />
+                  <InfoBanner message="This checkpoint requires an uploaded document, use the Upload file button below. A written description alone won't pass." />
                 )}
                 <Field label="Written response">
                   <Textarea
@@ -288,7 +288,7 @@ function TractionFields({
           </Field>
         </div>
       )}
-      <Field label="Evidence link — analytics dashboard, LOI, invoice, payment processor stats, public counter, etc.">
+      <Field label="Evidence link: analytics dashboard, LOI, invoice, payment processor stats, public counter, etc.">
         <Input
           name="evidenceLink"
           type="url"
@@ -303,7 +303,7 @@ function TractionFields({
           required
           rows={6}
           defaultValue={prevNarrative}
-          placeholder="Describe the evidence behind these numbers — how they were measured, verifiable sources, context."
+          placeholder="Describe the evidence behind these numbers: how they were measured, verifiable sources, context."
         />
       </Field>
     </>

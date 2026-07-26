@@ -32,5 +32,5 @@ export const FUNDER_TYPE_OPTIONS = [
 ] as const;
 
 export function funderTypeLabel(value: string | null | undefined): string {
-  return FUNDER_TYPE_OPTIONS.find((o) => o.value === value)?.label ?? "—";
+  return FUNDER_TYPE_OPTIONS.find((o) => o.value === value)?.label ?? "Not specified";
 }

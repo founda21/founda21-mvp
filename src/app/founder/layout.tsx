@@ -13,7 +13,9 @@ export default async function FounderLayout({ children }: { children: React.Reac
   // That page lives outside this layout on purpose, so it isn't itself
   // redirected back here in a loop.
   const eligibility = await prisma.founderEligibility.findUnique({ where: { founderId: founder.id } });
-  if (!eligibility || !founder.bio || !founder.startupSummary) redirect("/complete-profile");
+  if (!eligibility || !founder.bio || !founder.startupSummary || !founder.ventureStage) {
+    redirect("/complete-profile");
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

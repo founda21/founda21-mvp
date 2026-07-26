@@ -9,22 +9,22 @@ export const GUIDANCE_FAQ: FaqEntry[] = [
   {
     question: "What happens if a checkpoint doesn't pass?",
     answer:
-      "You'll see specifically what was missing and a top-priority fix. You can resubmit right away — there's no limit on individual checkpoint attempts, only on a full stage failing (see below).",
+      "You'll see specifically what was missing and a top-priority fix. You can resubmit right away, there's no limit on individual checkpoint attempts, only on a full stage failing (see below).",
   },
   {
     question: "What happens if a full stage doesn't pass?",
     answer:
-      "There's a 14-day cooldown before you can retry that stage. That's not a punishment — real fixes (new evidence, a rebuilt model, an actual customer conversation) take real time, so rushing back in with the same gaps rarely helps.",
+      "There's a 14-day cooldown before you can retry that stage. That's not a punishment: real fixes (new evidence, a rebuilt model, an actual customer conversation) take real time, so rushing back in with the same gaps rarely helps.",
   },
   {
     question: "Can I update my venture stage later?",
     answer:
-      "Yes — go to Personal details and update it any time. It only affects which checkpoints you can currently access, not anything you've already passed.",
+      "Yes, go to Personal details and update it any time. It only affects which checkpoints you can currently access, not anything you've already passed.",
   },
   {
     question: "Can someone else, or an AI, write my answers for me?",
     answer:
-      "You can use whatever tools help you think and write — but the evidence has to be genuinely yours. Checkpoints ask for things only you can actually know (your real numbers, your real customers, your real story), and that's what gets checked.",
+      "You can use whatever tools help you think and write, but the evidence has to be genuinely yours. Checkpoints ask for things only you can actually know (your real numbers, your real customers, your real story), and that's what gets checked.",
   },
   {
     question: "What funding type should I be asking for?",

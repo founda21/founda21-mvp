@@ -41,7 +41,7 @@ export function validateUploadedFile(file: File): FileValidationResult {
   if (file.size > MAX_UPLOAD_BYTES) {
     return {
       ok: false,
-      error: `File is too large (${Math.round(file.size / (1024 * 1024))}MB) — max ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB.`,
+      error: `File is too large (${Math.round(file.size / (1024 * 1024))}MB), max ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB.`,
     };
   }
   if (file.size === 0) {
@@ -51,7 +51,7 @@ export function validateUploadedFile(file: File): FileValidationResult {
   if (!ALLOWED_UPLOAD_EXTENSIONS.has(ext)) {
     return {
       ok: false,
-      error: `Unsupported file type ".${ext}" — allowed: PDF, PPT/PPTX, DOC/DOCX, XLS/XLSX, CSV, or an image (PNG/JPG/WEBP/GIF).`,
+      error: `Unsupported file type ".${ext}", allowed: PDF, PPT/PPTX, DOC/DOCX, XLS/XLSX, CSV, or an image (PNG/JPG/WEBP/GIF).`,
     };
   }
   return { ok: true };

@@ -1,5 +1,5 @@
 export function ventureStageLabel(value: string | null | undefined): string {
-  return VENTURE_STAGE_OPTIONS.find((o) => o.value === value)?.label ?? "—";
+  return VENTURE_STAGE_OPTIONS.find((o) => o.value === value)?.label ?? "Not specified";
 }
 
 const VENTURE_STAGE_RANK: Record<string, number> = {
@@ -35,7 +35,7 @@ export const VENTURE_STAGE_OPTIONS = [
     value: "SEED",
     label: "Seed",
     description:
-      "You have real traction — paying customers or meaningful usage — and are raising or have raised a seed round.",
+      "You have real traction, paying customers or meaningful usage, and are raising or have raised a seed round.",
   },
   {
     value: "SERIES_A_PLUS",

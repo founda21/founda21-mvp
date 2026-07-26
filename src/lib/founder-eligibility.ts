@@ -3,12 +3,12 @@ import type { AnnualTurnoverBand, EntityType, BeneficiaryClass } from "@/generat
 export const ANNUAL_TURNOVER_BAND_OPTIONS = [
   { value: "pre_revenue", label: "Pre-revenue" },
   { value: "under_10m", label: "Under R10m" },
-  { value: "ten_m_to_50m", label: "R10m – R50m" },
+  { value: "ten_m_to_50m", label: "R10m to R50m" },
   { value: "over_50m", label: "Over R50m" },
 ] as const;
 
 export function annualTurnoverBandLabel(value: string | null | undefined): string {
-  return ANNUAL_TURNOVER_BAND_OPTIONS.find((o) => o.value === value)?.label ?? "—";
+  return ANNUAL_TURNOVER_BAND_OPTIONS.find((o) => o.value === value)?.label ?? "Not specified";
 }
 
 export const ENTITY_TYPE_OPTIONS = [
@@ -18,7 +18,7 @@ export const ENTITY_TYPE_OPTIONS = [
 ] as const;
 
 export function entityTypeLabel(value: string | null | undefined): string {
-  return ENTITY_TYPE_OPTIONS.find((o) => o.value === value)?.label ?? "—";
+  return ENTITY_TYPE_OPTIONS.find((o) => o.value === value)?.label ?? "Not specified";
 }
 
 export type EligibilityDerived = {

@@ -140,7 +140,7 @@ export async function scoreAndSaveSubmission(
     console.error(`Scoring failed for founder ${founderId}, checkpoint ${checkpointId}:`, error);
     return {
       ok: false,
-      error: "Something went wrong while scoring your submission. Please try again — if this keeps happening, contact your funder.",
+      error: "Something went wrong while scoring your submission. Please try again, if this keeps happening, contact your funder.",
     };
   }
 }

@@ -27,26 +27,39 @@ export default async function SignupPage({
 
         <ErrorBanner message={error} />
 
-        <form action={signUpInstitution} className="flex flex-col gap-4">
+        <form action={signUpInstitution} className="flex flex-col gap-4" autoComplete="off">
           <Field label="Organisation name">
-            <Input name="institutionName" type="text" required placeholder="e.g. Founda Accelerator" />
+            <Input name="institutionName" type="text" required placeholder="e.g. Founda Accelerator" autoComplete="off" />
           </Field>
           <FunderTypeField defaultValue={type} />
           <Field label="Contact name (optional)">
-            <Input name="contactName" type="text" placeholder="Jane Admin" />
+            <Input name="contactName" type="text" placeholder="Jane Admin" autoComplete="off" />
           </Field>
           <Field label="Admin email">
-            <Input name="email" type="email" required placeholder="you@organisation.org" />
+            <Input name="email" type="email" required placeholder="you@organisation.org" autoComplete="off" />
           </Field>
           <Field label="Password">
-            <Input name="password" type="password" required minLength={8} placeholder="At least 8 characters" />
+            <Input name="password" type="password" required minLength={8} placeholder="At least 8 characters" autoComplete="new-password" />
           </Field>
+
+          <label className="flex items-start gap-2.5 text-xs text-navy/60">
+            <input type="checkbox" name="provenanceAcknowledged" required className="mt-0.5 accent-emerald" />
+            <span>
+              I have read and understood the Founda21 Standard{" "}
+              <Link href="/methodology" target="_blank" rel="noreferrer" className="underline">
+                Provenance &amp; Methodology Statement
+              </Link>
+              , including how assessment criteria are derived and how to make representations if I
+              disagree with an outcome.
+            </span>
+          </label>
+
           <PrimaryButton type="submit" className="mt-2">
             Create account
           </PrimaryButton>
         </form>
 
-        <p className="text-center text-xs text-navy/40">
+        <p className="text-center text-xs text-navy/60">
           By creating an account you agree to our{" "}
           <Link href="/terms" className="text-navy/60 underline">
             Terms

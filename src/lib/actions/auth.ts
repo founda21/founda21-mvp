@@ -7,6 +7,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { FunderType } from "@/generated/prisma/enums";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { isPlatformAdminEmail } from "@/lib/platform-admin";
+import { funderTypeLabel } from "@/lib/funder-type";
+import { sendEmail } from "@/lib/email";
+import { notifyFunderWelcome } from "@/lib/notifications";
+
+// Where the "a new institution wants to join" review notification goes (§
+// InstitutionStatus manual approval gate). Hardcoded for now, per explicit
+// instruction — move to an env var if this needs to go to more than one
+// person later.
+const FOUNDA21_OPS_EMAIL = "foundarsa@gmail.com";
 
 // Brute-force protection — checked per-account (the actual target of a
 // credential-stuffing attempt) and per-IP (catches one source hammering many
@@ -42,12 +52,18 @@ export async function signUpInstitution(formData: FormData) {
   const contactName = String(formData.get("contactName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const provenanceAcknowledged = formData.get("provenanceAcknowledged");
 
   if (!institutionName || !email || !password) {
     redirect(`/signup?error=${encodeURIComponent("All fields are required.")}`);
   }
   if (!VALID_FUNDER_TYPES.has(funderTypeRaw as FunderType)) {
     redirect(`/signup?error=${encodeURIComponent("Select a funder type.")}`);
+  }
+  if (!provenanceAcknowledged) {
+    redirect(
+      `/signup?error=${encodeURIComponent("You must acknowledge the Founda21 Standard Provenance & Methodology Statement.")}`,
+    );
   }
   const funderType = funderTypeRaw as FunderType;
 
@@ -76,14 +92,41 @@ export async function signUpInstitution(formData: FormData) {
         contactName: contactName || null,
         contactEmail: email,
         adminUserId: data.user.id,
+        provenanceAcknowledgedAt: new Date(),
       },
     });
+
+    // Manual review gate (§ InstitutionStatus) — never blocks signup itself
+    // if the email fails to send; the institution just sits pending until
+    // someone checks /admin directly.
+    const origin = await siteOrigin();
+    await sendEmail({
+      to: FOUNDA21_OPS_EMAIL,
+      subject: `New funder signup awaiting review: ${institutionName}`,
+      html: `
+        <p>A new institution signed up and is pending approval:</p>
+        <ul>
+          <li><strong>Name:</strong> ${institutionName}</li>
+          <li><strong>Funder type:</strong> ${funderTypeLabel(funderType)}</li>
+          <li><strong>Contact:</strong> ${contactName || "(not given)"} — ${email}</li>
+        </ul>
+        <p><a href="${origin}/admin">Review in the admin panel</a></p>
+      `,
+    });
+
+    // Fire-and-forget, like every other notification — a delivery failure
+    // must never block signup itself.
+    try {
+      await notifyFunderWelcome({ institutionName, contactName: contactName || null, email });
+    } catch (welcomeError) {
+      console.error(`notifyFunderWelcome failed for new institution ${institutionName}:`, welcomeError);
+    }
   }
 
   const supabase = await createClient();
   const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
   if (signInError) {
-    redirect(`/login?message=${encodeURIComponent("Account created — log in to continue.")}`);
+    redirect(`/login?message=${encodeURIComponent("Account created, log in to continue.")}`);
   }
 
   redirect("/dashboard");
@@ -130,6 +173,8 @@ export async function login(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?error=${encodeURIComponent("Login failed.")}`);
 
+  if (isPlatformAdminEmail(user.email)) redirect("/admin");
+
   const institution = await prisma.institution.findUnique({
     where: { adminUserId: user.id },
   });
@@ -149,13 +194,27 @@ export async function logout() {
 
 // Always redirects with the same success message regardless of whether the
 // email is registered — avoids leaking which emails have accounts.
+//
+// Supabase's built-in email sending is rate-limited (a handful per hour on
+// the free tier, no custom SMTP configured yet — § requestPasswordReset).
+// Repeated clicks used to silently do nothing once that shared quota was
+// hit, which read as "the link never arrives" or "resend is broken". This
+// throttles OUR side of it too (one request per email per 3 minutes) so we
+// stop burning the quota on accidental double-submits, and tells the user
+// honestly that delivery can take a few minutes rather than implying it's
+// instant.
 export async function requestPasswordReset(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
-  const successRedirect = `/forgot-password?message=${encodeURIComponent(
-    "If an account exists for that email, a reset link is on its way.",
-  )}`;
+  const sentMessage =
+    "If an account exists for that email, a reset link is on its way — it can take a few minutes to arrive, check spam too. Wait before requesting again.";
+  const successRedirect = `/forgot-password?message=${encodeURIComponent(sentMessage)}`;
 
   if (!email) redirect(successRedirect);
+
+  const rateLimit = await checkRateLimit(`password-reset:${email.toLowerCase()}`, 1, 3 * 60 * 1000);
+  if (!rateLimit.ok) {
+    redirect(`/forgot-password?message=${encodeURIComponent(sentMessage)}`);
+  }
 
   const origin = await siteOrigin();
   const supabase = await createClient();
@@ -172,12 +231,16 @@ export async function requestPasswordReset(formData: FormData) {
 export async function updatePassword(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  // Lets a caller other than the recovery-link page (e.g. the in-app admin
+  // settings page) send validation errors back to itself instead of always
+  // bouncing to /reset-password.
+  const redirectPath = String(formData.get("redirectPath") || "/reset-password");
 
   if (password.length < 8) {
-    redirect(`/reset-password?error=${encodeURIComponent("Password must be at least 8 characters.")}`);
+    redirect(`${redirectPath}?error=${encodeURIComponent("Password must be at least 8 characters.")}`);
   }
   if (password !== confirmPassword) {
-    redirect(`/reset-password?error=${encodeURIComponent("Passwords do not match.")}`);
+    redirect(`${redirectPath}?error=${encodeURIComponent("Passwords do not match.")}`);
   }
 
   const supabase = await createClient();
@@ -190,8 +253,10 @@ export async function updatePassword(formData: FormData) {
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
-    redirect(`/reset-password?error=${encodeURIComponent(error.message)}`);
+    redirect(`${redirectPath}?error=${encodeURIComponent(error.message)}`);
   }
+
+  if (isPlatformAdminEmail(user.email)) redirect("/admin");
 
   const institution = await prisma.institution.findUnique({ where: { adminUserId: user.id } });
   if (institution) redirect("/dashboard");
@@ -199,5 +264,5 @@ export async function updatePassword(formData: FormData) {
   const founder = await prisma.founder.findUnique({ where: { userId: user.id } });
   if (founder) redirect("/founder");
 
-  redirect(`/login?message=${encodeURIComponent("Password updated — log in to continue.")}`);
+  redirect(`/login?message=${encodeURIComponent("Password updated, log in to continue.")}`);
 }

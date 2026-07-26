@@ -13,7 +13,7 @@ export default function TermsPage() {
         <div className="flex flex-col gap-6 text-navy/80 text-sm leading-relaxed">
           <div>
             <h1 className="text-navy text-2xl font-bold mb-1">Terms of Service</h1>
-            <p className="text-navy/40 text-xs">Last updated 9 July 2026</p>
+            <p className="text-navy/60 text-xs">Last updated 9 July 2026</p>
           </div>
 
           <section className="flex flex-col gap-2">
@@ -50,7 +50,7 @@ export default function TermsPage() {
           <section className="flex flex-col gap-2">
             <h2 className="text-navy font-semibold text-base">4. Portable accounts and data sharing</h2>
             <p>
-              A founder&apos;s checkpoint progress is portable across funders — the same account can
+              A founder&apos;s checkpoint progress is portable across funders, the same account can
               join multiple funders&apos; cohorts via separate passcodes, and each funder can see that
               founder&apos;s scoring history and profile once the founder has joined their cohort.
               Founders should only share their passcode-linked account with funders they intend to
@@ -86,11 +86,17 @@ export default function TermsPage() {
 
           <section className="flex flex-col gap-2">
             <h2 className="text-navy font-semibold text-base">8. Contact</h2>
-            <p>Questions about these terms can be sent to the Founda21 team via your funder contact.</p>
+            <p>
+              Questions about these terms can be sent to{" "}
+              <a className="underline" href="mailto:foundarsa@gmail.com">
+                foundarsa@gmail.com
+              </a>
+              .
+            </p>
           </section>
 
-          <p className="text-navy/40 text-xs border-t border-navy/10 pt-4">
-            This is a starting template, not legal advice — have it reviewed by qualified counsel
+          <p className="text-navy/60 text-xs border-t border-navy/10 pt-4">
+            This is a starting template, not legal advice, have it reviewed by qualified counsel
             before relying on it for a live product handling personal and financial data.
           </p>
         </div>

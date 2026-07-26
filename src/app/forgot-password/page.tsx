@@ -20,16 +20,17 @@ export default async function ForgotPasswordPage({
         <div className="text-center">
           <h1 className="text-navy text-2xl font-bold">Reset your password</h1>
           <p className="text-navy/60 text-sm mt-1">
-            Enter your account email and we&apos;ll send you a link to set a new password.
+            Enter your account email and we&apos;ll send you a link to set a new password. Delivery can
+            take a few minutes — please don&apos;t request more than one at a time.
           </p>
         </div>
 
         <ErrorBanner message={error} />
         <InfoBanner message={message} />
 
-        <form action={requestPasswordReset} className="flex flex-col gap-4">
+        <form action={requestPasswordReset} className="flex flex-col gap-4" autoComplete="off">
           <Field label="Email">
-            <Input name="email" type="email" required placeholder="you@example.com" />
+            <Input name="email" type="email" required placeholder="you@example.com" autoComplete="off" />
           </Field>
           <PrimaryButton type="submit" className="mt-2">
             Send reset link

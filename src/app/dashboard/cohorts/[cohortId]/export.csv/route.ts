@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireInstitutionAdmin } from "@/lib/auth";
+import { requireApprovedInstitutionAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCohortReport, cohortReportToCsv } from "@/lib/cohort-report";
 
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ cohortId: string }> },
 ) {
   const { cohortId } = await params;
-  const { institution } = await requireInstitutionAdmin();
+  const { institution } = await requireApprovedInstitutionAdmin();
 
   const cohort = await prisma.cohort.findUnique({ where: { id: cohortId } });
   if (!cohort || cohort.institutionId !== institution.id) {

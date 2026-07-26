@@ -20,14 +20,29 @@ const STAGE_NAMES: Record<1 | 2 | 3, string> = {
   3: "Investor & Deal Readiness",
 };
 
-export function CheckpointStatusGrid({ founderId, items }: { founderId: string; items: CheckpointStatusItem[] }) {
+export function CheckpointStatusGrid({
+  founderId,
+  items,
+  basePath = "/dashboard",
+  linkPrefix,
+}: {
+  founderId: string;
+  items: CheckpointStatusItem[];
+  basePath?: string;
+  // Overrides the default `${basePath}/founders/${founderId}/checkpoints`
+  // link prefix — e.g. the founder's own dashboard links to
+  // `/founder/checkpoint` (singular, no founderId segment) instead. Must be
+  // a plain string, not a function: this is a client component and a
+  // function prop can't cross the server->client boundary from a page.
+  linkPrefix?: string;
+}) {
   const [stage, setStage] = useState<1 | 2 | 3>(1);
   const filtered = items.filter((i) => i.stage === stage);
 
   return (
     <div className="flex flex-col gap-3">
       <p className="text-navy font-semibold text-sm">Checkpoint status at a glance</p>
-      <p className="text-navy/40 text-xs -mt-2">Click a checkpoint to see just that one.</p>
+      <p className="text-navy/60 text-xs -mt-2">Click a checkpoint to see just that one.</p>
 
       <div className="flex gap-1 rounded-full border border-navy/10 p-1 w-fit">
         {([1, 2, 3] as const).map((s) => (
@@ -36,14 +51,14 @@ export function CheckpointStatusGrid({ founderId, items }: { founderId: string; 
             type="button"
             onClick={() => setStage(s)}
             className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-              stage === s ? "bg-navy text-white" : "text-navy/60 hover:text-navy"
+              stage === s ? "bg-brand text-white" : "text-navy/60 hover:text-navy"
             }`}
           >
             Stage {s}
           </button>
         ))}
       </div>
-      <p className="text-navy/40 text-xs -mt-1">{STAGE_NAMES[stage]}</p>
+      <p className="text-navy/60 text-xs -mt-1">{STAGE_NAMES[stage]}</p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {filtered.map((item) => {
@@ -56,7 +71,7 @@ export function CheckpointStatusGrid({ founderId, items }: { founderId: string; 
           return (
             <Link
               key={item.id}
-              href={`/dashboard/founders/${founderId}/checkpoints/${item.id}`}
+              href={`${linkPrefix ?? `${basePath}/founders/${founderId}/checkpoints`}/${item.id}`}
               className={`rounded-xl border p-3 flex flex-col gap-1.5 hover:shadow-sm transition-shadow ${tone}`}
             >
               <div className="flex items-center justify-between gap-2">

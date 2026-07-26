@@ -127,7 +127,7 @@ async function buildArtifactContent(
   if (proofMode === "file-required" && !hasFile) {
     return {
       ok: false,
-      error: "This checkpoint requires an uploaded document — use the Upload file button, a written description alone won't pass.",
+      error: "This checkpoint requires an uploaded document, use the Upload file button, a written description alone won't pass.",
     };
   }
 
@@ -141,7 +141,7 @@ async function buildArtifactContent(
     if (!evidenceLink) {
       return {
         ok: false,
-        error: "Traction claims need a verifiable evidence link (analytics dashboard, LOI, invoice, payment processor stats, etc.) — a narrative alone won't pass.",
+        error: "Traction claims need a verifiable evidence link (analytics dashboard, LOI, invoice, payment processor stats, etc.), a narrative alone won't pass.",
       };
     }
     const traction: TractionSubmission = {
@@ -200,7 +200,7 @@ export async function submitArtifact(checkpointId: number, formData: FormData) {
   }
 
   if (!built.narrative.trim()) {
-    redirect(`/founder/checkpoint/${checkpointId}?error=${encodeURIComponent("Submission can't be empty — paste content, add a link, or upload a file.")}`);
+    redirect(`/founder/checkpoint/${checkpointId}?error=${encodeURIComponent("Submission can't be empty, paste content, add a link, or upload a file.")}`);
   }
 
   const result = await scoreAndSaveSubmission(

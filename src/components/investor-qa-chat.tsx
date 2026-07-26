@@ -77,7 +77,7 @@ export function InvestorQAChat() {
         <p className="text-navy/70 text-sm">
           This checkpoint is a live Q&amp;A, not a document upload. An AI playing a South African
           investor will ask you {QA_SESSION_TURN_COUNT} hard questions, one at a time, grounded in
-          your own prior checkpoint submissions. Answer as you would in a real meeting — the full
+          your own prior checkpoint submissions. Answer as you would in a real meeting, the full
           exchange gets scored at the end.
         </p>
         <PrimaryButton type="button" onClick={handleStart} disabled={loading} className="self-start">
@@ -128,7 +128,7 @@ export function InvestorQAChat() {
               Clear
             </SecondaryButton>
           </div>
-          <p className="text-navy/40 text-xs">
+          <p className="text-navy/60 text-xs">
             Question {turns.length + 1} of {QA_SESSION_TURN_COUNT}
           </p>
         </div>
@@ -148,7 +148,7 @@ function ChatBubble({
 }) {
   return (
     <div className={`flex flex-col gap-1 max-w-[85%] ${align === "right" ? "self-end items-end" : "self-start"}`}>
-      <span className="text-navy/40 text-xs font-semibold uppercase tracking-wide">{speaker}</span>
+      <span className="text-navy/60 text-xs font-semibold uppercase tracking-wide">{speaker}</span>
       <div
         className={`rounded-2xl px-4 py-2.5 text-sm ${
           align === "right" ? "bg-emerald/10 text-navy" : "bg-navy/5 text-navy"

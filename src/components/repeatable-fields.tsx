@@ -52,7 +52,7 @@ export function TeamFields({ prev }: { prev: TeamProof | null }) {
       >
         + Add team member
       </SecondaryButton>
-      <Field label="Gaps & advisors — be honest about what's missing">
+      <Field label="Gaps & advisors: be honest about what's missing">
         <Textarea name="teamGaps" rows={4} defaultValue={prev?.gaps ?? ""} />
       </Field>
     </div>
@@ -71,7 +71,7 @@ export function RoadmapFields({ prev }: { prev: RoadmapProof | null }) {
   return (
     <div className="flex flex-col gap-3">
       <input type="hidden" name="milestonesJson" value={JSON.stringify(milestones)} />
-      <p className="text-navy text-sm font-semibold">Milestones (3–6 concrete, dated, owned)</p>
+      <p className="text-navy text-sm font-semibold">Milestones (3 to 6 concrete, dated, owned)</p>
       {milestones.map((m, i) => (
         <div key={i} className="grid sm:grid-cols-[2fr_1fr_1fr_auto] gap-2 items-center">
           <Input

@@ -11,16 +11,16 @@ export function FounderEligibilityFields() {
         Ownership &amp; entity details
       </legend>
       <p className="text-navy/50 text-xs -mt-2">
-        Used only for funder eligibility reporting (e.g. B-BBEE/ESD) — never seen by the AI
+        Used only for funder eligibility reporting (e.g. B-BBEE/ESD), never seen by the AI
         scoring engine and never affects your checkpoint scores.
       </p>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Black ownership %">
-          <Input name="blackOwnershipPct" type="number" min={0} max={100} required placeholder="0–100" />
+          <Input name="blackOwnershipPct" type="number" min={0} max={100} required placeholder="0 to 100" />
         </Field>
         <Field label="Black women ownership %">
-          <Input name="blackWomenOwnershipPct" type="number" min={0} max={100} required placeholder="0–100" />
+          <Input name="blackWomenOwnershipPct" type="number" min={0} max={100} required placeholder="0 to 100" />
         </Field>
       </div>
 

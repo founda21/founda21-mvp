@@ -14,7 +14,7 @@ export function VentureStageField({ defaultValue }: { defaultValue?: string }) {
         What stage is your venture at?
       </legend>
       <p className="text-navy/50 text-xs mb-1">
-        This determines which checkpoints you can access right now — Stage 1 needs Idea stage or
+        This determines which checkpoints you can access right now, Stage 1 needs Idea stage or
         later, Stage 2 needs Pre-seed or later, Stage 3 needs Seed or later. Be honest about where
         you really are; you can update this later as your venture progresses.
       </p>

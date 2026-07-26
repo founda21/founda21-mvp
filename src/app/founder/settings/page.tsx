@@ -24,7 +24,7 @@ export default async function FounderSettingsPage({
         <div>
           <p className="text-red-700 font-bold text-sm">Delete my account</p>
           <p className="text-navy/70 text-sm mt-1">
-            This permanently deletes your Founda21 account — your login, every checkpoint submission
+            This permanently deletes your Founda21 account, your login, every checkpoint submission
             and score, your eligibility/outcome data, and your identity records. This cannot be undone
             and cannot be recovered by Founda21 or your funder(s). If you&apos;re enrolled with more
             than one funder, this removes your data from all of them at once.

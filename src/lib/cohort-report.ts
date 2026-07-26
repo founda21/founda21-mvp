@@ -291,6 +291,45 @@ export function cohortReportToCsv(report: CohortReport): string {
   return lines.map((line) => line.map(csvEscape).join(",")).join("\n");
 }
 
+// A lean, standalone export of just the shortlisted founders — no
+// cohort-wide averages/M&E block appended (those numbers would be
+// misleading scoped to a subset), just the roster a funder actually wants
+// to print or hand off after shortlisting.
+export function shortlistToCsv(report: CohortReport): string {
+  const header = [
+    "Rank",
+    "Founder",
+    "Venture",
+    "Venture Type",
+    "Venture Stage",
+    "Current Stage",
+    "Total Points",
+    "Stage 1 Status",
+    "Stage 2 Status",
+    "Stage 3 Status",
+    "Founda21 Investable",
+  ];
+
+  const lines = [header];
+  for (const row of report.rows.filter((r) => r.shortlisted)) {
+    lines.push([
+      String(row.rank),
+      row.fullName,
+      row.ventureName,
+      row.ventureType,
+      row.ventureStage ?? "",
+      String(row.currentStage),
+      String(row.totalPoints),
+      row.stageStatuses[1]?.status ?? "not started",
+      row.stageStatuses[2]?.status ?? "not started",
+      row.stageStatuses[3]?.status ?? "not started",
+      row.investable ? "Yes" : "No",
+    ]);
+  }
+
+  return lines.map((line) => line.map(csvEscape).join(",")).join("\n");
+}
+
 function csvEscape(value: string): string {
   if (value.includes(",") || value.includes('"') || value.includes("\n")) {
     return `"${value.replace(/"/g, '""')}"`;

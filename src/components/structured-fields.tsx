@@ -24,7 +24,7 @@ export function RecordingFields({ prev }: { prev: RecordingProof | null }) {
           required
           rows={8}
           defaultValue={prev?.statement ?? ""}
-          placeholder="Why are you personally positioned to solve this problem — your background, lived experience, or unique insight?"
+          placeholder="Why are you personally positioned to solve this problem? Your background, lived experience, or unique insight."
         />
       </Field>
     </>
@@ -45,7 +45,7 @@ export function OnlinePresenceFields({ prev }: { prev: OnlinePresenceProof | nul
           placeholder={"https://instagram.com/…\nhttps://twitter.com/…"}
         />
       </Field>
-      <Field label="Trust signal evidence links (reviews, press mentions — one per line)">
+      <Field label="Trust signal evidence links (reviews, press mentions, one per line)">
         <Textarea
           name="trustSignals"
           rows={3}
@@ -61,10 +61,10 @@ export function UnitEconomicsFields({ prev }: { prev: UnitEconomicsProof | null 
   return (
     <>
       <div className="grid sm:grid-cols-2 gap-4">
-        <Field label="CAC — customer acquisition cost (ZAR)">
+        <Field label="CAC: customer acquisition cost (ZAR)">
           <Input name="cac" type="number" step="0.01" min={0} required defaultValue={prev?.cac ?? ""} />
         </Field>
-        <Field label="LTV — lifetime value (ZAR)">
+        <Field label="LTV: lifetime value (ZAR)">
           <Input name="ltv" type="number" step="0.01" min={0} required defaultValue={prev?.ltv ?? ""} />
         </Field>
         <Field label="Gross margin (%)">
@@ -90,7 +90,7 @@ export function UnitEconomicsFields({ prev }: { prev: UnitEconomicsProof | null 
           />
         </Field>
       </div>
-      <Field label="Methodology — how were these calculated?">
+      <Field label="Methodology: how were these calculated?">
         <Textarea
           name="methodology"
           required
@@ -106,7 +106,7 @@ export function UnitEconomicsFields({ prev }: { prev: UnitEconomicsProof | null 
 export function DataRoomFields({ prev }: { prev: DataRoomProof | null }) {
   return (
     <>
-      <Field label="Data room link (Google Drive, Notion, etc. — must be accessible to a reviewer)">
+      <Field label="Data room link (Google Drive, Notion, etc., must be accessible to a reviewer)">
         <Input
           name="dataRoomLink"
           type="url"
@@ -115,7 +115,7 @@ export function DataRoomFields({ prev }: { prev: DataRoomProof | null }) {
           placeholder="https://…"
         />
       </Field>
-      <Field label="Narrative — cap table, board structure, what's in the data room">
+      <Field label="Narrative: cap table, board structure, what's in the data room">
         <Textarea
           name="dataRoomNarrative"
           required

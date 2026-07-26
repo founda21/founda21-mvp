@@ -28,7 +28,7 @@ export const FUNDING_TYPES: FundingTypeInfo[] = [
     name: "Grant / non-dilutive funding",
     oneLiner: "Money you don't pay back and don't give up ownership for.",
     howItWorks:
-      "A funder (often a corporate, government programme, or DFI) gives you money to hit a specific goal — jobs created, a pilot completed, a product built. Usually comes with reporting requirements, not repayment.",
+      "A funder (often a corporate, government programme, or DFI) gives you money to hit a specific goal: jobs created, a pilot completed, a product built. Usually comes with reporting requirements, not repayment.",
     goodFor: "Idea-to-early-traction stage ventures, or ventures serving a mission a funder cares about (job creation, B-BBEE development, a specific sector).",
     watchOutFor: "Grants are usually smaller and slower to access than equity, and often tied to specific milestones or reporting you must deliver on.",
   },
@@ -47,8 +47,8 @@ export const FUNDING_TYPES: FundingTypeInfo[] = [
     oneLiner: "Money you borrow and pay back, usually with interest.",
     howItWorks:
       "A lender (bank, DFI, fund manager) gives you capital that you repay over time with interest. Ownership of your company doesn't change.",
-    goodFor: "Ventures with predictable revenue that can service a repayment schedule — e.g. buying stock/equipment, bridging working capital.",
-    watchOutFor: "You must repay it regardless of whether the venture succeeds — this is real personal/business risk if cash flow is inconsistent.",
+    goodFor: "Ventures with predictable revenue that can service a repayment schedule, e.g. buying stock/equipment, bridging working capital.",
+    watchOutFor: "You must repay it regardless of whether the venture succeeds: this is real personal/business risk if cash flow is inconsistent.",
   },
   {
     id: "revenue_based",
@@ -57,25 +57,25 @@ export const FUNDING_TYPES: FundingTypeInfo[] = [
     howItWorks:
       "A funder advances capital, then takes an agreed % of your monthly revenue as repayment until you've paid back an agreed multiple (e.g. 1.3x what you borrowed). Repayment scales with how well you're doing.",
     goodFor: "Ventures with real, recurring revenue but that don't want to give up equity or commit to a fixed loan repayment.",
-    watchOutFor: "Less common in South Africa than grants/equity/loans — fewer funders offer it, and it still requires real, verifiable revenue.",
+    watchOutFor: "Less common in South Africa than grants/equity/loans: fewer funders offer it, and it still requires real, verifiable revenue.",
   },
   {
     id: "convertible_note",
     name: "Convertible note / SAFE",
     oneLiner: "A loan that turns into equity later, usually at your next funding round.",
     howItWorks:
-      "An investor gives you capital now as debt, but instead of repaying in cash, it converts into shares later — usually at a discount — once you raise a priced equity round.",
+      "An investor gives you capital now as debt, but instead of repaying in cash, it converts into shares later (usually at a discount) once you raise a priced equity round.",
     goodFor: "Early-stage ventures raising a small amount quickly, without agreeing on a company valuation yet.",
-    watchOutFor: "It's still eventually equity — you're deferring the ownership conversation, not avoiding it.",
+    watchOutFor: "It's still eventually equity: you're deferring the ownership conversation, not avoiding it.",
   },
   {
     id: "accelerator_program",
     name: "Accelerator / incubator programme funding",
-    oneLiner: "Structured support (and sometimes a small amount of capital) in exchange for guidance, curriculum, and a network — sometimes a small equity stake.",
+    oneLiner: "Structured support (and sometimes a small amount of capital) in exchange for guidance, curriculum, and a network, sometimes a small equity stake.",
     howItWorks:
       "A programme gives you mentorship, structure, and sometimes a small grant or stipend to get through it. Some programmes take a small equity stake in exchange; many (especially DFI/donor-funded ones) don't.",
     goodFor: "Founders who need structure, accountability, and a network more than they need a large amount of capital right now.",
-    watchOutFor: "Read the terms carefully — know upfront whether a programme takes equity, and how much, before you join.",
+    watchOutFor: "Read the terms carefully: know upfront whether a programme takes equity, and how much, before you join.",
   },
 ];
 

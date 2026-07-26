@@ -11,7 +11,7 @@ export default async function NewCohortPage({
 
   return (
     <div className="max-w-md mx-auto flex flex-col gap-6">
-      <BackLink href="/dashboard" label="Back to cohorts" />
+      <BackLink href="/dashboard/cohorts" label="Back to cohorts" />
       <h1 className="text-navy text-2xl font-bold">New cohort</h1>
       <ErrorBanner message={error} />
       <form action={createCohort} className="flex flex-col gap-4">
