@@ -4,13 +4,18 @@ import { requirePlatformAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { funderTypeLabel } from "@/lib/funder-type";
 import { BackLink } from "@/components/back-link";
+import { AdminDeleteRecord } from "@/components/admin-delete-record";
+import { deleteInstitutionByAdmin } from "@/lib/actions/platform-admin";
 
 export default async function AdminInstitutionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ institutionId: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { institutionId } = await params;
+  const { error } = await searchParams;
   await requirePlatformAdmin();
 
   const institution = await prisma.institution.findUnique({ where: { id: institutionId } });
@@ -52,6 +57,14 @@ export default async function AdminInstitutionDetailPage({
           ))}
         </div>
       )}
+
+      <AdminDeleteRecord
+        title="Permanently delete this institution"
+        description={`This deletes ${institution.name}'s login, every cohort and passcode it created, and its view of every founder. A founder who has also joined a different funder keeps their account and that other funder's data; a founder who only ever belonged to this institution is deleted along with it. This cannot be undone.`}
+        action={deleteInstitutionByAdmin}
+        hiddenFields={{ institutionId: institution.id }}
+        error={error}
+      />
     </div>
   );
 }

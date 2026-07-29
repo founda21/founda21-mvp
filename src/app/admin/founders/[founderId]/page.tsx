@@ -3,13 +3,18 @@ import { requirePlatformAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { FounderOverviewView, founderOverviewInclude } from "@/components/founder-overview-view";
 import { FounderTimeline } from "@/components/founder-timeline";
+import { AdminDeleteRecord } from "@/components/admin-delete-record";
+import { deleteFounderByAdmin } from "@/lib/actions/platform-admin";
 
 export default async function AdminFounderOverviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ founderId: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { founderId } = await params;
+  const { error } = await searchParams;
   await requirePlatformAdmin();
 
   const founder = await prisma.founder.findUnique({
@@ -31,8 +36,15 @@ export default async function AdminFounderOverviewPage({
         backHref={homeMembership ? `/admin/institutions/${homeMembership.cohort.institutionId}` : "/admin"}
         backLabel={homeMembership ? homeMembership.cohort.name : "Back to institutions"}
       />
-      <div className="max-w-4xl mx-auto w-full">
+      <div className="max-w-4xl mx-auto w-full flex flex-col gap-8">
         <FounderTimeline founderCreatedAt={founder.createdAt} submissions={founder.submissions} />
+        <AdminDeleteRecord
+          title="Permanently delete this founder"
+          description={`This deletes ${founder.fullName}'s login, every checkpoint submission and score, eligibility/outcome data, and identity records, across every funder they've joined. This cannot be undone.`}
+          action={deleteFounderByAdmin}
+          hiddenFields={{ founderId: founder.id }}
+          error={error}
+        />
       </div>
     </div>
   );
