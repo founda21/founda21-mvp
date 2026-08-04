@@ -21,7 +21,7 @@ const SECTIONS = [
   },
   {
     title: "5. Export your cohort data",
-    body: "“Export CSV” on a cohort page downloads every founder's ranking, checkpoint scores, and (where applicable) eligibility/outcome data — useful for your own M&E reporting or a B-BBEE/ESD verification file.",
+    body: "“Export Excel” on a cohort page downloads a workbook with every founder's ranking, checkpoint scores, and (where applicable) eligibility/outcome data across separate tabs — useful for your own M&E reporting or a B-BBEE/ESD verification file.",
   },
   {
     title: "6. Manage your account",

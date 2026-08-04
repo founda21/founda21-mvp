@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { CHECKPOINTS } from "@/lib/checkpoints";
 import { FRAMEWORK_VERSION } from "@/lib/scoring/index";
+import { computeReadinessProgress, type ReadinessSnapshot } from "@/lib/readiness-baseline";
 
 export type FounderCheckpointResult = {
   checkpointId: number;
@@ -23,6 +24,27 @@ export type FounderReportRow = {
   totalPoints: number;
   rank: number;
   shortlisted: boolean;
+  // Documented baseline (§ readiness-baseline.ts) — null only for a
+  // membership that predates the feature and hasn't been backfilled yet.
+  baselineCapturedAt: Date | null;
+  baselineStage: number | null;
+  baselineCheckpointsPassed: number | null;
+  checkpointsPassedSinceBaseline: number | null;
+  pointsGainedSinceBaseline: number | null;
+};
+
+export type WeakestCheckpoint = {
+  checkpointId: number;
+  name: string;
+  stage: number;
+  avgScore: number;
+  attemptedCount: number;
+};
+
+export type CohortBreakdown = {
+  weakestCheckpoints: WeakestCheckpoint[];
+  bottleneckStage: { stage: number; passRate: number } | null;
+  narrative: string;
 };
 
 // Cohort-level M&E export block (§ spec §7) — structured to drop into a
@@ -54,6 +76,7 @@ export type CohortReport = {
   checkpointAverages: Record<number, number | null>;
   stagePassRates: Record<number, number>; // percentage 0-100
   meExport: CohortMEExport;
+  breakdown: CohortBreakdown;
 };
 
 export async function getCohortReport(cohortId: string): Promise<CohortReport | null> {
@@ -73,6 +96,7 @@ export async function getCohortReport(cohortId: string): Promise<CohortReport | 
           stageStatuses: true,
         },
       },
+      baseline: true,
     },
   });
   const founders = memberships.map((m) => m.founder);
@@ -108,6 +132,35 @@ export async function getCohortReport(cohortId: string): Promise<CohortReport | 
 
     const investable = stageStatuses[3]?.status === "passed";
     const totalPoints = Object.values(checkpoints).reduce((sum, c) => sum + (c.score ?? 0), 0);
+    const checkpointsPassedNow = Object.values(checkpoints).filter((c) => c.passed).length;
+
+    // Progress-since-baseline (§ readiness-baseline.ts) — same computation
+    // the funder sees on the individual founder page, surfaced here per row
+    // so a cohort-wide CSV/roster carries it too.
+    let baselineCapturedAt: Date | null = null;
+    let baselineStage: number | null = null;
+    let baselineCheckpointsPassed: number | null = null;
+    let checkpointsPassedSinceBaseline: number | null = null;
+    let pointsGainedSinceBaseline: number | null = null;
+    if (membership.baseline) {
+      const checkpointResults: ReadinessSnapshot["checkpointResults"] = {};
+      for (const checkpoint of CHECKPOINTS) {
+        const c = checkpoints[checkpoint.id];
+        checkpointResults[checkpoint.id] = { score: c.score, passed: c.passed ?? false };
+      }
+      const currentSnapshot: ReadinessSnapshot = {
+        stage: founder.currentStage,
+        checkpointsPassed: checkpointsPassedNow,
+        totalPoints,
+        checkpointResults,
+      };
+      const progress = computeReadinessProgress(membership.baseline, currentSnapshot);
+      baselineCapturedAt = progress.baselineCapturedAt;
+      baselineStage = progress.baseline.stage;
+      baselineCheckpointsPassed = progress.baseline.checkpointsPassed;
+      checkpointsPassedSinceBaseline = progress.checkpointsPassedDelta;
+      pointsGainedSinceBaseline = progress.totalPointsDelta;
+    }
 
     return {
       founderId: founder.id,
@@ -123,6 +176,11 @@ export async function getCohortReport(cohortId: string): Promise<CohortReport | 
       totalPoints,
       rank: 0, // assigned below, after sorting
       shortlisted: membership.shortlisted,
+      baselineCapturedAt,
+      baselineStage,
+      baselineCheckpointsPassed,
+      checkpointsPassedSinceBaseline,
+      pointsGainedSinceBaseline,
     };
   });
 
@@ -150,6 +208,7 @@ export async function getCohortReport(cohortId: string): Promise<CohortReport | 
   }
 
   const meExport = await buildMEExport(founders.map((f) => f.id));
+  const breakdown = computeCohortBreakdown(rows, checkpointAverages);
 
   return {
     cohortId: cohort.id,
@@ -158,7 +217,75 @@ export async function getCohortReport(cohortId: string): Promise<CohortReport | 
     checkpointAverages,
     stagePassRates,
     meExport,
+    breakdown,
   };
+}
+
+// Deterministic, numbers-only synthesis of "where is this cohort
+// systematically breaking down" — no AI call, purely a transform of the
+// checkpointAverages/stageStatuses already gathered above, so it's free,
+// instant, and never invents a number that isn't traceable to real scores.
+// Thresholds (>=2 founders attempted/reached) exist specifically so a single
+// founder's bad day is never reported as a "pattern".
+function computeCohortBreakdown(
+  rows: FounderReportRow[],
+  checkpointAverages: Record<number, number | null>,
+): CohortBreakdown {
+  const attemptedCounts: Record<number, number> = {};
+  for (const checkpoint of CHECKPOINTS) {
+    attemptedCounts[checkpoint.id] = rows.filter((r) => r.checkpoints[checkpoint.id]?.score != null).length;
+  }
+
+  const weakestCheckpoints: WeakestCheckpoint[] = CHECKPOINTS.filter((c) => {
+    const avg = checkpointAverages[c.id];
+    return attemptedCounts[c.id] >= 2 && avg !== null && avg < c.passThreshold;
+  })
+    .map((c) => ({
+      checkpointId: c.id,
+      name: c.name,
+      stage: c.stage,
+      avgScore: checkpointAverages[c.id]!,
+      attemptedCount: attemptedCounts[c.id],
+    }))
+    .sort((a, b) => a.avgScore - b.avgScore)
+    .slice(0, 3);
+
+  let bottleneckStage: { stage: number; passRate: number } | null = null;
+  for (const stage of [1, 2, 3]) {
+    const reached = rows.filter((r) => r.stageStatuses[stage]);
+    if (reached.length < 2) continue;
+    const passed = reached.filter((r) => r.stageStatuses[stage]?.status === "passed").length;
+    const passRate = Math.round((passed / reached.length) * 1000) / 10;
+    if (!bottleneckStage || passRate < bottleneckStage.passRate) {
+      bottleneckStage = { stage, passRate };
+    }
+  }
+
+  const narrativeParts: string[] = [];
+  if (weakestCheckpoints.length > 0) {
+    const top = weakestCheckpoints[0];
+    const threshold = CHECKPOINTS.find((c) => c.id === top.checkpointId)!.passThreshold;
+    narrativeParts.push(
+      `The most common breakdown point is CP${top.checkpointId} · ${top.name} (avg ${top.avgScore}/100 across ${top.attemptedCount} founder${top.attemptedCount === 1 ? "" : "s"}, below the ${threshold} pass mark).`,
+    );
+    if (weakestCheckpoints.length > 1) {
+      const rest = weakestCheckpoints
+        .slice(1)
+        .map((w) => `CP${w.checkpointId} · ${w.name}`)
+        .join(", ");
+      narrativeParts.push(`Also worth attention: ${rest}.`);
+    }
+  }
+  if (bottleneckStage) {
+    narrativeParts.push(`Stage ${bottleneckStage.stage} has the lowest clear rate so far, at ${bottleneckStage.passRate}%.`);
+  }
+
+  const narrative =
+    narrativeParts.length > 0
+      ? narrativeParts.join(" ")
+      : "Not enough founders have attempted the same checkpoints yet to identify a systematic pattern.";
+
+  return { weakestCheckpoints, bottleneckStage, narrative };
 }
 
 async function buildMEExport(founderIds: string[]): Promise<CohortMEExport> {
@@ -206,89 +333,6 @@ async function buildMEExport(founderIds: string[]): Promise<CohortMEExport> {
       generatedAt: new Date().toISOString(),
     },
   };
-}
-
-export function cohortReportToCsv(report: CohortReport): string {
-  const header = [
-    "Rank",
-    "Founder",
-    "Venture",
-    "Venture Type",
-    "Venture Stage",
-    "Current Stage",
-    "Total Points",
-    "Stage 1 Status",
-    "Stage 2 Status",
-    "Stage 3 Status",
-    "Founda21 Investable",
-    ...CHECKPOINTS.map((c) => `CP${c.id} ${c.name}`),
-  ];
-
-  const lines = [header];
-
-  for (const row of report.rows) {
-    lines.push([
-      String(row.rank),
-      row.fullName,
-      row.ventureName,
-      row.ventureType,
-      row.ventureStage ?? "",
-      String(row.currentStage),
-      String(row.totalPoints),
-      row.stageStatuses[1]?.status ?? "not started",
-      row.stageStatuses[2]?.status ?? "not started",
-      row.stageStatuses[3]?.status ?? "not started",
-      row.investable ? "Yes" : "No",
-      ...CHECKPOINTS.map((c) => {
-        const result = row.checkpoints[c.id];
-        if (result?.score === null || result?.score === undefined) return "";
-        return result.attemptNumber && result.attemptNumber > 1
-          ? `${result.score} (attempt ${result.attemptNumber})`
-          : String(result.score);
-      }),
-    ]);
-  }
-
-  lines.push([]);
-  lines.push(["Cohort average per checkpoint"]);
-  lines.push([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    ...CHECKPOINTS.map((c) => (report.checkpointAverages[c.id] !== null ? String(report.checkpointAverages[c.id]) : "")),
-  ]);
-  lines.push([]);
-  lines.push(["Stage pass rate (%)", `Stage 1: ${report.stagePassRates[1]}`, `Stage 2: ${report.stagePassRates[2]}`, `Stage 3: ${report.stagePassRates[3]}`]);
-
-  const me = report.meExport;
-  lines.push([]);
-  lines.push(["M&E summary"]);
-  lines.push(["Total assessed", String(me.totalAssessed)]);
-  lines.push(["ESD beneficiary eligible", String(me.esdEligibleCount)]);
-  lines.push(["Black women-owned", String(me.blackWomenOwnedCount)]);
-  lines.push([
-    "Beneficiary class breakdown",
-    `EME: ${me.beneficiaryClassBreakdown.EME ?? 0}`,
-    `QSE: ${me.beneficiaryClassBreakdown.QSE ?? 0}`,
-    `Generic: ${me.beneficiaryClassBreakdown.generic ?? 0}`,
-    `N/A: ${me.beneficiaryClassBreakdown.n_a ?? 0}`,
-  ]);
-  lines.push(["Total capital raised (ZAR)", String(me.outcomes.totalCapitalRaisedZar)]);
-  lines.push(["Total monthly revenue (ZAR)", String(me.outcomes.totalMonthlyRevenueZar)]);
-  lines.push(["Total headcount", String(me.outcomes.totalHeadcount)]);
-  lines.push(["Still operating", String(me.outcomes.stillOperatingCount)]);
-  lines.push(["Graduated to supplier", String(me.outcomes.graduatedToSupplierCount)]);
-  lines.push(["Provenance", `Framework ${me.provenance.frameworkVersion}`, `Generated ${me.provenance.generatedAt}`]);
-
-  return lines.map((line) => line.map(csvEscape).join(",")).join("\n");
 }
 
 // A lean, standalone export of just the shortlisted founders — no

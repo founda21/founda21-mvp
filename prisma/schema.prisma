@@ -185,6 +185,7 @@ model CohortMembership {
 
   founder Founder @relation(fields: [founderId], references: [id], onDelete: Cascade)
   cohort  Cohort  @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  baseline ReadinessBaseline?
 
   // The unique([founderId, cohortId]) index below only serves lookups that
   // filter on founderId first — getCohortReport (the funder dashboard's
@@ -194,6 +195,31 @@ model CohortMembership {
   @@unique([founderId, cohortId])
   @@index([cohortId])
   @@map("cohort_memberships")
+}
+
+// A permanent, one-time snapshot of a founder's readiness the moment their
+// relationship with a specific funder began — written once, the instant the
+// CohortMembership row above is created (§ ensureCohortMembership), and never
+// updated after. This is the funder-facing "documented baseline... progress
+// measured in later cycles" promise: because a founder account is portable
+// (the same founder may join several funders over time, each already
+// mid-progress), the baseline is scoped per-membership, not per-founder — it
+// answers "where did this founder stand on day one WITH US", not "day one
+// ever". checkpointResults mirrors ScoringOutput's shape narrowly (score +
+// passed only, no dimension detail) purely so progress deltas can be computed
+// without re-querying Submission/Score history.
+model ReadinessBaseline {
+  id                String   @id @default(cuid())
+  membershipId      String   @unique @map("membership_id")
+  capturedAt        DateTime @default(now()) @map("captured_at")
+  stage             Int
+  checkpointsPassed Int      @map("checkpoints_passed")
+  totalPoints       Int      @map("total_points")
+  checkpointResults Json     @map("checkpoint_results")
+
+  membership CohortMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@map("readiness_baselines")
 }
 
 // Internal account id for a founder. FoundaID (public identifier) slots in

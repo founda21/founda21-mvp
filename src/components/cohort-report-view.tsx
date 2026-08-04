@@ -54,10 +54,10 @@ export function CohortReportView({
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-navy text-2xl font-bold">{report.cohortName}</h1>
         <a
-          href={`${basePath}/cohorts/${cohortId}/export.csv`}
+          href={`${basePath}/cohorts/${cohortId}/export.xlsx`}
           className="rounded-full border border-navy text-navy px-5 py-2 text-sm font-semibold hover:bg-brand hover:text-white transition-colors"
         >
-          Export CSV
+          Export Excel
         </a>
       </div>
 
@@ -69,6 +69,25 @@ export function CohortReportView({
               <p className="text-navy text-2xl font-bold">{report.stagePassRates[stage]}%</p>
             </div>
           ))}
+        </div>
+
+        <div className="rounded-xl border border-navy/10 bg-navy/[0.03] p-5">
+          <p className="text-navy font-semibold text-sm mb-2">Where this cohort is getting stuck</p>
+          <p className="text-navy/70 text-sm">{report.breakdown.narrative}</p>
+          {report.breakdown.weakestCheckpoints.length > 0 && (
+            <ul className="mt-3 flex flex-col gap-1.5">
+              {report.breakdown.weakestCheckpoints.map((w) => (
+                <li key={w.checkpointId} className="text-navy/70 text-xs flex items-center justify-between gap-3">
+                  <span>
+                    CP{w.checkpointId} · {w.name}
+                  </span>
+                  <span className="text-navy font-semibold whitespace-nowrap">
+                    {w.avgScore}/100 avg ({w.attemptedCount} founder{w.attemptedCount === 1 ? "" : "s"})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="rounded-xl border border-navy/10 p-5">

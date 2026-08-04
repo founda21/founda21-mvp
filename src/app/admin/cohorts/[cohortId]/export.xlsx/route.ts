@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requirePlatformAdmin } from "@/lib/auth";
-import { getCohortReport, cohortReportToCsv } from "@/lib/cohort-report";
+import { getCohortReport } from "@/lib/cohort-report";
+import { cohortReportToXlsx } from "@/lib/cohort-report-xlsx";
 
 export async function GET(
   _request: Request,
@@ -14,12 +15,12 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const csv = cohortReportToCsv(report);
-  const filename = `${report.cohortName.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-report.csv`;
+  const buffer = await cohortReportToXlsx(report);
+  const filename = `${report.cohortName.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-report.xlsx`;
 
-  return new NextResponse(csv, {
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
-      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });

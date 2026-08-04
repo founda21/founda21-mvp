@@ -5,6 +5,7 @@ import { annualTurnoverBandLabel, entityTypeLabel } from "@/lib/founder-eligibil
 import { Badge, ErrorBanner, InfoBanner } from "@/components/ui";
 import { CheckpointStatusGrid, type CheckpointStatusItem } from "@/components/checkpoint-status-grid";
 import { FounderNudgeForm } from "@/components/founder-nudge-form";
+import { computeReadinessProgress } from "@/lib/readiness-baseline";
 import type { ScoringOutput } from "@/lib/scoring/schema";
 import { Prisma } from "@/generated/prisma/client";
 
@@ -13,13 +14,36 @@ export const founderOverviewInclude = {
   submissions: { include: { score: true }, orderBy: { attemptNumber: "asc" } },
   eligibility: true,
   outcomes: { orderBy: { snapshotDate: "desc" }, take: 1 },
-  memberships: { include: { cohort: true } },
+  memberships: { include: { cohort: true, baseline: true } },
 } satisfies Prisma.FounderInclude;
 
 export type FounderWithDetails = Prisma.FounderGetPayload<{ include: typeof founderOverviewInclude }>;
 
 function formatZar(amount: number) {
   return `R${amount.toLocaleString("en-ZA")}`;
+}
+
+function formatDate(date: Date) {
+  return date.toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" });
+}
+
+// One readable sentence up front, so "is this founder actually progressing"
+// never requires a funder to do arithmetic on four separate stat tiles
+// themselves — the numbers below are for the follow-up "by how much".
+function summarizeProgress(progress: ReturnType<typeof computeReadinessProgress>, joinedLabel: string): string {
+  const gains: string[] = [];
+  if (progress.checkpointsPassedDelta > 0) {
+    gains.push(
+      `passed ${progress.checkpointsPassedDelta} more checkpoint${progress.checkpointsPassedDelta === 1 ? "" : "s"}`,
+    );
+  }
+  if (progress.current.stage > progress.baseline.stage) {
+    gains.push(`advanced from Stage ${progress.baseline.stage} to Stage ${progress.current.stage}`);
+  }
+  if (gains.length === 0) {
+    return `No measured progress yet since joining on ${joinedLabel}.`;
+  }
+  return `Since joining on ${joinedLabel}, this founder has ${gains.join(" and ")}.`;
 }
 
 export function FounderOverviewView({
@@ -62,6 +86,27 @@ export function FounderOverviewView({
   const belowThreshold = checkpointStatus.filter((c) => c.output && !c.output.passed);
   const notAttempted = checkpointStatus.filter((c) => !c.output);
   const outcome = founder.outcomes[0];
+
+  // Progress-since-baseline (§ readiness-baseline.ts) — funder-side only,
+  // scoped to the specific membership this funder owns, never another
+  // funder's relationship with the same portable founder account.
+  const membership = institutionId
+    ? founder.memberships.find((m) => m.cohort.institutionId === institutionId)
+    : undefined;
+  let progress: ReturnType<typeof computeReadinessProgress> | null = null;
+  if (membership?.baseline) {
+    const checkpointResults: Record<number, { score: number | null; passed: boolean }> = {};
+    for (const { checkpoint, output } of checkpointStatus) {
+      checkpointResults[checkpoint.id] = { score: output?.checkpoint_score ?? null, passed: output?.passed ?? false };
+    }
+    const totalPoints = checkpointStatus.reduce((sum, c) => sum + (c.output?.checkpoint_score ?? 0), 0);
+    progress = computeReadinessProgress(membership.baseline, {
+      stage: founder.currentStage,
+      checkpointsPassed: passedCount,
+      totalPoints,
+      checkpointResults,
+    });
+  }
 
   const checkpointStatusItems: CheckpointStatusItem[] = checkpointStatus.map(({ checkpoint, output }) => ({
     id: checkpoint.id,
@@ -150,6 +195,50 @@ export function FounderOverviewView({
           </div>
         )}
       </div>
+
+      {progress && membership && (
+        <div className="rounded-xl border border-navy/10 p-5 flex flex-col gap-4">
+          <div>
+            <p className="text-navy/50 text-xs uppercase font-semibold">
+              Progress since joining {membership.cohort.name}
+            </p>
+            <p className="text-navy text-sm font-medium mt-1">
+              {summarizeProgress(progress, formatDate(progress.baselineCapturedAt))}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm border-t border-navy/10 pt-4">
+            <div>
+              <p className="text-navy/50 text-xs uppercase font-semibold">Baseline (day one)</p>
+              <p className="text-navy font-semibold">
+                Stage {progress.baseline.stage} · {progress.baseline.checkpointsPassed}/21 passed
+              </p>
+            </div>
+            <div>
+              <p className="text-navy/50 text-xs uppercase font-semibold">Now</p>
+              <p className="text-navy font-semibold">
+                Stage {progress.current.stage} · {progress.current.checkpointsPassed}/21 passed
+              </p>
+            </div>
+            <div>
+              <p className="text-navy/50 text-xs uppercase font-semibold">Checkpoints gained</p>
+              <p className={`font-semibold ${progress.checkpointsPassedDelta > 0 ? "text-emerald" : "text-navy"}`}>
+                {progress.checkpointsPassedDelta > 0 ? `+${progress.checkpointsPassedDelta}` : progress.checkpointsPassedDelta}
+              </p>
+            </div>
+            <div>
+              <p className="text-navy/50 text-xs uppercase font-semibold">Points gained</p>
+              <p className={`font-semibold ${progress.totalPointsDelta > 0 ? "text-emerald" : "text-navy"}`}>
+                {progress.totalPointsDelta > 0 ? `+${progress.totalPointsDelta}` : progress.totalPointsDelta}
+              </p>
+            </div>
+          </div>
+          {progress.newlyPassedCheckpointIds.length > 0 && (
+            <p className="text-navy/60 text-xs">
+              Newly passed since joining: {progress.newlyPassedCheckpointIds.map((id) => `CP${id}`).join(", ")}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="rounded-xl border border-navy/10 p-5 flex items-center justify-between flex-wrap gap-3">
         <div>

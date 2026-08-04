@@ -14,6 +14,7 @@ import { validatePasscode, recordPasscodeUse } from "@/lib/passcode";
 import { normalizePhoneToE164 } from "@/lib/identity";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { notifyFounderWelcome } from "@/lib/notifications";
+import { captureReadinessBaseline } from "@/lib/readiness-baseline";
 
 const VALID_VENTURE_TYPES = new Set(Object.values(VentureType));
 const VALID_VENTURE_STAGES = new Set(Object.values(VentureStage));
@@ -82,13 +83,18 @@ function parseFounderForm(formData: FormData): FounderFormFields | { error: stri
 // A founder account is portable across institutions — the same login can be
 // a member of any number of cohorts, keeping one shared set of checkpoint
 // progress rather than starting over per institution. Idempotent: joining a
-// cohort they're already in is a no-op.
+// cohort they're already in is a no-op. find-then-create rather than a plain
+// upsert because a genuinely NEW membership also needs a ReadinessBaseline
+// captured in the same beat (§ readiness-baseline.ts) — the funder's "day
+// one" reference point for this founder, which must never be written twice.
 async function ensureCohortMembership(founderId: string, cohortId: string) {
-  await prisma.cohortMembership.upsert({
+  const existing = await prisma.cohortMembership.findUnique({
     where: { founderId_cohortId: { founderId, cohortId } },
-    update: {},
-    create: { founderId, cohortId },
   });
+  if (existing) return;
+
+  const membership = await prisma.cohortMembership.create({ data: { founderId, cohortId } });
+  await captureReadinessBaseline(founderId, membership.id);
 }
 
 // Creates the Supabase auth user + Founder + initial StageStatus row for a
