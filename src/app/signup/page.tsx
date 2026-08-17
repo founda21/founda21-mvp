@@ -19,9 +19,9 @@ export default async function SignupPage({
 
       <div className="w-full max-w-sm flex flex-col gap-6">
         <div className="text-center">
-          <h1 className="text-navy text-2xl font-bold">Create your funder account</h1>
+          <h1 className="text-navy text-2xl font-bold">Create your institution account</h1>
           <p className="text-navy/60 text-sm mt-1">
-            For funders running founders through the Founda21 standard.
+            For institutions sending ventures through Founda21&apos;s independent assessment.
           </p>
         </div>
 
@@ -45,8 +45,8 @@ export default async function SignupPage({
           <label className="flex items-start gap-2.5 text-xs text-navy/60">
             <input type="checkbox" name="provenanceAcknowledged" required className="mt-0.5 accent-emerald" />
             <span>
-              I have read and understood the Founda21 Standard{" "}
-              <Link href="/methodology" target="_blank" rel="noreferrer" className="underline">
+              I have read and understood the Founda21{" "}
+              <Link href="/provenance" target="_blank" rel="noreferrer" className="underline">
                 Provenance &amp; Methodology Statement
               </Link>
               , including how assessment criteria are derived and how to make representations if I

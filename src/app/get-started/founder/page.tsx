@@ -23,7 +23,7 @@ export default async function FounderGetStartedPage({
         <div className="text-center">
           <h1 className="text-navy text-2xl font-bold">Start your Founda21 assessment</h1>
           <p className="text-navy/60 text-sm mt-1">
-            You&apos;ll need the passcode your funder gave you, Founda21 doesn&apos;t offer
+            You&apos;ll need the passcode your institution gave you, Founda21 doesn&apos;t offer
             self-serve signup without one.
           </p>
         </div>
@@ -52,12 +52,12 @@ export default async function FounderGetStartedPage({
         {isLogin ? (
           <>
             <p className="text-navy/60 text-sm text-center">
-              Already working through Founda21 with another funder? Enter the new passcode and log
+              Already working through Founda21 with another institution? Enter the new passcode and log
               in, your checkpoint progress carries over, nothing restarts.
             </p>
             <form action={joinExistingAccountViaPasscode} className="flex flex-col gap-4" autoComplete="off">
               <Field label="Passcode">
-                <Input name="passcode" type="text" required placeholder="Passcode from your funder" autoComplete="off" />
+                <Input name="passcode" type="text" required placeholder="Passcode from your institution" autoComplete="off" />
               </Field>
               <Field label="Email">
                 <Input name="email" type="email" required placeholder="you@example.com" autoComplete="off" />
@@ -76,7 +76,7 @@ export default async function FounderGetStartedPage({
         ) : (
           <form action={joinViaPasscode} className="flex flex-col gap-4" autoComplete="off">
             <Field label="Passcode">
-              <Input name="passcode" type="text" required placeholder="Passcode from your funder" autoComplete="off" />
+              <Input name="passcode" type="text" required placeholder="Passcode from your institution" autoComplete="off" />
             </Field>
             <Field label="Your full name">
               <Input name="fullName" type="text" required placeholder="Jane Founder" autoComplete="off" />
@@ -96,8 +96,8 @@ export default async function FounderGetStartedPage({
             <label className="flex items-start gap-2.5 text-xs text-navy/60">
               <input type="checkbox" name="provenanceAcknowledged" required className="mt-0.5 accent-emerald" />
               <span>
-                I have read and understood the Founda21 Standard{" "}
-                <Link href="/methodology" target="_blank" rel="noreferrer" className="underline">
+                I have read and understood the Founda21{" "}
+                <Link href="/provenance" target="_blank" rel="noreferrer" className="underline">
                   Provenance &amp; Methodology Statement
                 </Link>
                 , including how assessment criteria are derived and how to make representations if I

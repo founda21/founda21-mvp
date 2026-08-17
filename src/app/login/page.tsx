@@ -44,7 +44,7 @@ export default async function LoginPage({
 
         <p className="text-center text-sm text-navy/60">
           Founder, already have an account? Log in above to check your progress, update checkpoints,
-          or add an outcome snapshot, no passcode needed unless you&apos;re joining a new funder.
+          or add an outcome snapshot, no passcode needed unless you&apos;re joining a new institution.
         </p>
 
         <p className="text-center text-sm text-navy/60">
@@ -55,7 +55,7 @@ export default async function LoginPage({
           <br />
           New founder, no account yet?{" "}
           <Link href="/get-started/founder" className="text-emerald font-semibold">
-            Enter your funder&apos;s passcode
+            Enter your institution&apos;s passcode
           </Link>
           .
         </p>

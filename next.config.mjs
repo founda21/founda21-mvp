@@ -31,6 +31,13 @@ const cspHeader = `
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ["pdf-parse", "pdfjs-dist", "@napi-rs/canvas"],
+  async redirects() {
+    return [
+      // §5 positioning brief — /methodology moved to /provenance, same
+      // content, updated terminology.
+      { source: "/methodology", destination: "/provenance", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

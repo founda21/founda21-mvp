@@ -113,7 +113,7 @@ export function CohortCard({
       <Page size={[CARD_WIDTH, CARD_HEIGHT]} style={styles.page}>
         <View style={styles.card}>
           <View style={styles.column}>
-            <Text style={styles.badge}>IN PARTNERSHIP WITH</Text>
+            <Text style={styles.badge}>INDEPENDENTLY ASSESSED BY</Text>
             <View style={styles.wordmarkRow}>
               <Text style={styles.navy}>Fo</Text>
               <Text style={styles.emerald}>u</Text>
@@ -129,7 +129,7 @@ export function CohortCard({
             <Text style={styles.passcodeLabel}>JOIN WITH PASSCODE</Text>
             <Text style={styles.passcode}>{inviteCode}</Text>
             <Text style={styles.instruction}>
-              Go to {siteUrl.replace(/^https?:\/\//, "")}/get-started, choose &quot;I&apos;m a founder&quot;.
+              Go to {siteUrl.replace(/^https?:\/\//, "")}/get-started and enter your passcode.
             </Text>
           </View>
 

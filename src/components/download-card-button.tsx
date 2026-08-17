@@ -5,9 +5,9 @@ import { PrimaryButton } from "@/components/ui";
 import { consentToMarketingCard } from "@/lib/actions/institution";
 
 // Downloading the card is also the institution's one-time agreement to
-// display it — "in partnership with Founda21" — as part of Founda21's own
-// marketing, not just a convenience download. Gated by a checkbox the first
-// time; consented is true forever after (§ institution.marketingCardConsentedAt).
+// display it — "independently assessed by Founda21" — as part of their own
+// recruitment materials, not Founda21 marketing. Gated by a checkbox the
+// first time; consented is true forever after (§ institution.marketingCardConsentedAt).
 export function DownloadCardButton({
   cohortId,
   downloadHref,
@@ -45,8 +45,8 @@ export function DownloadCardButton({
           className="mt-0.5 accent-emerald"
         />
         <span>
-          I agree to display this card as part of our active recruitment materials, in partnership
-          with Founda21, for Founda21&apos;s marketing purposes.
+          I&apos;ll display this card, noting our ventures are independently assessed by Founda21, as
+          part of our own active recruitment materials.
         </span>
       </label>
       <PrimaryButton type="submit" disabled={!agreed} className="text-sm px-5 py-2">

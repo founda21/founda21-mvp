@@ -120,7 +120,7 @@ export function InvestorQAChat() {
             rows={4}
             placeholder="Answer as you would in a real investor meeting…"
           />
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <PrimaryButton type="button" onClick={handleSend} disabled={!draft.trim()}>
               {turns.length + 1 < QA_SESSION_TURN_COUNT ? "Send answer" : "Send final answer & get scored"}
             </PrimaryButton>

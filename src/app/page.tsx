@@ -1,30 +1,30 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Wordmark } from "@/components/wordmark";
 import { PrimaryButton } from "@/components/ui";
 import { MarketingSections } from "@/components/marketing-sections";
-import { MarketingNav } from "@/components/marketing-nav";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { TiltCard } from "@/components/tilt-card";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { RequestAssessmentForm } from "@/components/request-assessment-form";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "Founda21 — Independent Readiness Assessment for African Ventures",
+  description:
+    "We assess your ventures against 21 fixed checkpoints and give you a written report on each one. Independent, not a decision-maker, no equity taken.",
+};
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; message?: string }>;
+}) {
+  const { error, message } = await searchParams;
+
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-20 px-4 sm:px-12 py-4 sm:py-5 flex items-center justify-between gap-4 bg-white/85 backdrop-blur-sm border-b border-navy/5">
-        <div className="flex items-center gap-3 lg:gap-6 min-w-0">
-          <Wordmark className="text-xl sm:text-2xl shrink-0" />
-          <MarketingNav />
-        </div>
-        <nav className="flex items-center gap-3 sm:gap-4">
-          <Link href="/login" className="text-navy/60 text-sm font-semibold hover:text-navy hidden sm:inline">
-            Log in
-          </Link>
-          <Link href="/get-started">
-            <PrimaryButton type="button" className="px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base shadow-[0_6px_20px_rgba(1,136,78,0.3)]">
-              Start
-            </PrimaryButton>
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center w-full">
         {/* Hero */}
@@ -41,36 +41,33 @@ export default function Home() {
 
           <div className="relative w-full max-w-6xl px-4 sm:px-12 pt-8 sm:pt-24 pb-12 sm:pb-20 grid lg:grid-cols-[1.1fr_0.9fr] gap-8 sm:gap-14 items-center">
             <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 sm:gap-6">
-              <p className="text-navy/50 text-sm sm:text-base font-medium">
-                Founda21 is Africa&apos;s investability readiness standard.
-              </p>
               <p className="text-emerald text-xs sm:text-base font-semibold tracking-wide uppercase">
-                The Founder Readiness Standard · South Africa First
+                Independent Readiness Assessment · South Africa First
               </p>
               <h1 className="text-navy text-3xl sm:text-6xl font-bold tracking-tight leading-tight">
-                Stop guessing which founders are
+                Independent readiness assessment for
                 <br className="hidden sm:block" />{" "}
-                <span className="text-emerald">actually investable.</span>
+                <span className="text-emerald">early-stage African ventures.</span>
               </h1>
               <p className="text-navy/70 max-w-xl text-sm sm:text-lg">
-                Founda21 runs every founder in your pipeline through 21 checkpoints across five
-                dimensions, scored consistently by AI against a standard built from real, published
-                funder criteria, not invented, not self-reported.
+                We assess your ventures against 21 fixed checkpoints and give you a written report on
+                each one, scored consistently against five dimensions, not invented, not self-reported.
               </p>
-              <Link href="/get-started" className="animate-float-loop-slow inline-block">
+              <Link href="#request-assessment" className="animate-float-loop-slow inline-block">
                 <PrimaryButton type="button" className="px-7 sm:px-9 py-3 sm:py-4 text-base sm:text-lg shadow-[0_10px_30px_rgba(1,136,78,0.3)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(1,136,78,0.4)] transition-transform">
-                  Start
+                  Request an assessment
                 </PrimaryButton>
               </Link>
               <p className="text-navy/60 text-xs">
-                No founder ever pays. Funders get a live dashboard and portable credential per founder.
+                No founder ever pays. You get a written report per venture, a cohort report for the
+                group, and a live dashboard.
               </p>
             </div>
 
-            {/* Floating 3D credential card, desktop only. Three nested layers,
-                each owning its own transform, so the one-shot entrance, the
-                infinite bob, and the mouse-driven tilt never fight over the
-                same element's `transform` property. */}
+            {/* Floating 3D report-summary card, desktop only. Three nested
+                layers, each owning its own transform, so the one-shot
+                entrance, the infinite bob, and the mouse-driven tilt never
+                fight over the same element's `transform` property. */}
             <div className="hidden lg:flex justify-center [perspective:1200px]">
               <div className="animate-float-in">
                 <div className="animate-float-loop">
@@ -81,7 +78,7 @@ export default function Home() {
                         Investable
                       </span>
                     </div>
-                    <p className="text-navy/60 text-xs uppercase tracking-wide font-semibold">Overall readiness</p>
+                    <p className="text-navy/60 text-xs uppercase tracking-wide font-semibold">Venture Readiness Report</p>
                     <p className="text-navy text-3xl font-bold mb-4">21 / 21 checkpoints</p>
                     <div className="flex flex-col gap-2">
                       {[
@@ -109,7 +106,7 @@ export default function Home() {
 
         <MarketingSections />
 
-        {/* Credibility (scroll section, not a tab) */}
+        {/* Provenance (scroll section, not a tab) */}
         <section className="relative w-full bg-navy/[0.03] px-4 sm:px-12 py-12 sm:py-20 overflow-hidden">
           <div
             aria-hidden
@@ -127,39 +124,35 @@ export default function Home() {
               <h2 className="text-navy text-2xl sm:text-3xl font-bold">Not invented by AI</h2>
               <p className="text-navy/70 text-base sm:text-lg">
                 The 21 checkpoints come from structured research into what real funders, ESD fund
-                managers, DFIs, and accelerators publicly say they require. AI applies that standard
-                consistently to every founder; it didn&apos;t decide what matters.
+                managers, DFIs, and accelerators publicly say they require. AI applies those checkpoints
+                consistently to every venture; it didn&apos;t decide what matters.
               </p>
-              <Link href="/methodology" className="text-emerald font-semibold text-sm underline self-center sm:self-start">
+              <Link href="/provenance" className="text-emerald font-semibold text-sm underline self-center sm:self-start">
                 Read the full provenance and methodology statement
               </Link>
             </div>
           </ScrollReveal>
         </section>
 
-        {/* Final CTA */}
-        <section className="relative w-full bg-brand px-4 sm:px-12 py-12 sm:py-20 flex flex-col items-center text-center gap-5 overflow-hidden">
+        {/* Request an assessment */}
+        <section className="relative w-full bg-brand px-4 sm:px-12 py-14 sm:py-20 flex flex-col items-center gap-8 overflow-hidden">
           <div
             aria-hidden
             className="pointer-events-none absolute -bottom-20 left-1/2 -translate-x-1/2 w-72 h-40 sm:w-[500px] sm:h-52 rounded-full bg-emerald/25 blur-[70px]"
           />
-          <h2 className="relative text-white text-2xl sm:text-3xl font-bold">Ready to see who&apos;s actually ready?</h2>
-          <Link href="/get-started" className="relative animate-float-loop inline-block">
-            <PrimaryButton type="button" className="px-7 sm:px-9 py-3 sm:py-4 text-base sm:text-lg shadow-[0_10px_30px_rgba(1,136,78,0.45)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(1,136,78,0.55)] transition-transform">
-              Start
-            </PrimaryButton>
-          </Link>
+          <div className="relative text-center flex flex-col gap-2">
+            <h2 className="text-white text-2xl sm:text-3xl font-bold">Ready to see who&apos;s actually ready?</h2>
+            <p className="text-white/70 text-sm sm:text-base max-w-lg">
+              Send us your ventures. We&apos;ll assess them independently and hand you the report.
+            </p>
+          </div>
+          <div className="relative w-full">
+            <RequestAssessmentForm redirectTo="/" error={error} message={message} />
+          </div>
         </section>
       </main>
 
-      <footer className="px-4 sm:px-12 py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-navy/50 text-xs">
-        <Wordmark className="text-base" />
-        <div className="flex items-center gap-4">
-          <Link href="/methodology" className="hover:text-navy">Methodology</Link>
-          <Link href="/terms" className="hover:text-navy">Terms</Link>
-          <Link href="/privacy" className="hover:text-navy">Privacy</Link>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

@@ -13,7 +13,7 @@ const SECTIONS = [
   },
   {
     title: "3. Watch founders progress",
-    body: "Each founder works through 21 checkpoints across 3 stages, scored consistently by AI against the Founda21 standard. You don't score anything yourself — your cohort view just shows you where each founder stands, ranked by real readiness.",
+    body: "Each founder works through 21 checkpoints across 3 stages, scored consistently by AI against the same fixed rubric. You don't score anything yourself — your cohort view just shows you where each founder stands, ranked by real readiness.",
   },
   {
     title: "4. Review and shortlist",
@@ -54,7 +54,7 @@ export default async function DashboardHelpPage() {
         <p className="text-navy font-semibold text-sm">Still stuck?</p>
         <p className="text-navy/70 text-sm">
           Read the{" "}
-          <Link href="/methodology" target="_blank" rel="noreferrer" className="text-emerald font-semibold underline">
+          <Link href="/provenance" target="_blank" rel="noreferrer" className="text-emerald font-semibold underline">
             provenance and methodology statement
           </Link>{" "}
           to understand exactly how the 21 checkpoints are scored, or reach out directly for anything

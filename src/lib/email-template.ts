@@ -22,7 +22,7 @@ export function renderBrandedEmail(bodyHtml: string): string {
     ${bodyHtml}
   </div>
   <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; color: ${NAVY}99; font-size: 12px;">
-    Founda21 &middot; The Founder Readiness Standard
+    Founda21 &middot; Independent Readiness Assessment
   </div>
 </div>`;
 }

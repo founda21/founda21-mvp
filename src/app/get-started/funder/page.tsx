@@ -10,9 +10,9 @@ export default function FunderTypeChooserPage() {
       <Wordmark className="text-2xl" />
 
       <div className="text-center max-w-lg">
-        <h1 className="text-navy text-3xl font-bold tracking-tight">What kind of funder are you?</h1>
+        <h1 className="text-navy text-3xl font-bold tracking-tight">What kind of institution are you?</h1>
         <p className="text-navy/60 text-sm mt-2">
-          This tailors your dashboard and reports, the underlying Founda21 standard is the same for
+          This tailors your dashboard and reports, the underlying assessment is the same for
           everyone.
         </p>
       </div>

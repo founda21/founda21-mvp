@@ -62,7 +62,7 @@ export async function signUpInstitution(formData: FormData) {
   }
   if (!provenanceAcknowledged) {
     redirect(
-      `/signup?error=${encodeURIComponent("You must acknowledge the Founda21 Standard Provenance & Methodology Statement.")}`,
+      `/signup?error=${encodeURIComponent("You must acknowledge the Founda21 Provenance & Methodology Statement.")}`,
     );
   }
   const funderType = funderTypeRaw as FunderType;

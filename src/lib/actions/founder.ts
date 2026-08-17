@@ -64,7 +64,7 @@ function parseFounderForm(formData: FormData): FounderFormFields | { error: stri
     return { error: "Select a venture type." };
   }
   if (!provenanceAcknowledged) {
-    return { error: "You must acknowledge the Founda21 Standard Provenance & Methodology Statement." };
+    return { error: "You must acknowledge the Founda21 Provenance & Methodology Statement." };
   }
 
   const phoneResult = normalizePhoneToE164(phoneRaw);
